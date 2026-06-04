@@ -1,0 +1,6 @@
+{
+  "name": "YVIA UK Web Renewal Workspace",
+  "description": "An interactive bilingual workspace and live visual catalog reviewer to upgrade curriculum offerings and community events for yvia.uk.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
