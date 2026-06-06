@@ -26,6 +26,10 @@ export interface EventItem {
   images: string[];
   approved: boolean;
   notes?: string;
+  creatorId?: string;
+  creatorEmail?: string;
+  submissionStatus?: 'pending' | 'approved' | 'rejected';
+  attendeeCount?: number;
 }
 
 export interface WebsiteSettings {

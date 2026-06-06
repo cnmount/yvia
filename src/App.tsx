@@ -32,295 +32,98 @@ import {
   Users,
   LogIn,
   LogOut,
-  User
+  User,
+  Sparkles
 } from 'lucide-react';
 import { initialCourses, initialEvents } from './data';
 import { Course, EventItem, Registration } from './types';
-{/* import AboutUsPage from './components/MapComponent';   */}
+import { translations } from './locale';
+import AboutUsPage from './components/MapComponent';
+import CourseCard from './components/CourseCard';
 
 
+import EventCard from './components/EventCard';
 
-interface CourseCardProps {
-  course: Course;
-  onOpenRegistration: () => void;
-}
-
-function CourseCard(props: CourseCardProps) {
-  const { course, onOpenRegistration } = props;
-  const [activeImgIndex, setActiveImgIndex] = useState(0);
-
-  return (
-    <div className="bg-white border border-blue-100 rounded-3xl p-5 flex flex-col justify-between shadow-sm hover:shadow-md hover:border-[#2563eb]/25 transition-all relative group h-full">
-      <div className="space-y-4">
-        {/* Gallery Visual with thumbnails */}
-        {course.images && course.images.length > 0 && (
-          <div className="space-y-2">
-            <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-slate-50 border border-slate-100">
-              <img 
-                src={course.images[activeImgIndex]} 
-                alt={`${course.name} image ${activeImgIndex + 1}`}
-                referrerPolicy="no-referrer"
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
-              />
-              <div className="absolute bottom-2 right-2 bg-slate-900/75 backdrop-blur-xs text-white text-[9px] font-mono font-bold px-2 py-0.5 rounded-md">
-                {activeImgIndex + 1} / {course.images.length}
-              </div>
-            </div>
-            {/* Tiny Thumbnails */}
-            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-              {course.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setActiveImgIndex(idx)}
-                  className={`w-12 h-8 rounded-lg overflow-hidden border transition-all shrink-0 cursor-pointer ${
-                    activeImgIndex === idx 
-                      ? 'border-[#2563eb] ring-2 ring-[#2563eb]/20 scale-102' 
-                      : 'border-slate-200 opacity-60 hover:opacity-100'
-                  }`}
-                >
-                  <img 
-                    src={img} 
-                    alt="Thumbnail" 
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover" 
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="flex items-center justify-between">
-          <span className="font-mono text-[9px] bg-blue-50 border border-blue-200 text-[#2563eb] rounded-md px-2.5 py-1 font-bold">
-            {course.id.toUpperCase()}
-          </span>
-          <span className="text-[11px] font-mono font-bold text-amber-500 bg-amber-50 rounded-full px-2.5 py-0.5">
-            {course.ageGroup}
-          </span>
-        </div>
-
-        <h3 className="font-display font-extrabold text-lg text-[#0f1f4e] line-clamp-1 border-b border-slate-100 pb-2">
-          {course.name}
-        </h3>
-
-        <p className="text-xs text-slate-500 font-light leading-relaxed line-clamp-3">
-          {course.description}
-        </p>
-
-        <div className="space-y-1 pt-2">
-          <span className="text-[10px] font-mono font-bold text-slate-400 block uppercase">[ Core Target Variables ]</span>
-          <ul className="space-y-1">
-            {course.keyConcepts.slice(0, 3).map((concept, idx) => (
-              <li key={idx} className="flex items-center gap-1.5 text-xs text-slate-600 font-light">
-                <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <span className="truncate">{concept}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-        <span className="text-xs font-mono font-bold text-slate-400 flex items-center gap-1">
-          <Clock className="w-3.5 h-3.5" />
-          <span>{course.duration}</span>
-        </span>
-
-        <button 
-          onClick={onOpenRegistration}
-          className="text-xs font-sans font-bold text-[#2563eb] flex items-center gap-1 hover:underline cursor-pointer uppercase tracking-tight"
-        >
-          <span>Request mesh node</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-interface EventCardProps {
-  evt: EventItem;
-  onOpenRegistration: () => void;
-}
-
-function EventCard(props: EventCardProps) {
-  const { evt, onOpenRegistration } = props;
-  const [activeImgIndex, setActiveImgIndex] = useState(0);
-
-  return (
-    <div className="bg-white border border-blue-100 rounded-3xl p-6 md:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 shadow-sm hover:shadow-md transition-all">
-      {/* Event Gallery Visual */}
-      {evt.images && evt.images.length > 0 ? (
-        <div className="md:col-span-4 flex flex-col gap-2">
-          <div className="relative aspect-video md:aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-50 border border-slate-100">
-            <img 
-              src={evt.images[activeImgIndex]} 
-              alt={`${evt.title} visual ${activeImgIndex + 1}`}
-              referrerPolicy="no-referrer"
-              className="w-full h-full object-cover transition-transform duration-500 hover:scale-[1.02]"
-            />
-            <div className="absolute bottom-2 right-2 bg-slate-900/75 backdrop-blur-xs text-white text-[9px] font-mono font-bold px-2 py-0.5 rounded-md">
-              {activeImgIndex + 1} / {evt.images.length}
-            </div>
-          </div>
-          {/* Thumbnails */}
-          <div className="flex gap-1.5 overflow-x-auto pb-1 max-w-full scrollbar-none">
-            {evt.images.map((img, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => setActiveImgIndex(idx)}
-                className={`w-10 h-7 rounded-md overflow-hidden border transition-all shrink-0 cursor-pointer ${
-                  activeImgIndex === idx 
-                    ? 'border-[#2563eb] ring-2 ring-[#2563eb]/20 scale-102' 
-                    : 'border-slate-200 opacity-60 hover:opacity-100'
-                }`}
-              >
-                <img 
-                  src={img} 
-                  alt="Thumbnail" 
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover" 
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="md:col-span-4 bg-slate-50 border border-dashed border-slate-200 rounded-2xl flex items-center justify-center min-h-[120px]">
-          <span className="text-xs text-slate-400 font-mono">No Image</span>
-        </div>
-      )}
-
-      {/* Center Details */}
-      <div className="md:col-span-5 flex flex-col justify-between space-y-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span className={`text-[9px] font-mono font-bold px-2.5 py-0.5 rounded-full uppercase border ${
-              evt.status === 'past' 
-                ? 'bg-slate-50 text-slate-500 border-slate-200' 
-                : 'bg-emerald-50 text-emerald-600 border-emerald-200'
-            }`}>
-              {evt.status === 'past' ? 'Held Successfully' : 'Upcoming Core'}
-            </span>
-            <span className="text-xs font-mono text-slate-400 font-bold">{evt.date}</span>
-          </div>
-
-          <h4 className="font-display font-extrabold text-[#0f1f4e] text-lg leading-tight uppercase">
-            {evt.title}
-          </h4>
-
-          <p className="text-xs text-slate-500 leading-relaxed font-light line-clamp-4">
-            {evt.description}
-          </p>
-        </div>
-
-        <div className="text-[11px] font-mono font-bold text-slate-400 pt-3 border-t border-slate-50 flex items-center gap-1">
-          <MapPin className="w-3.5 h-3.5 text-[#2563eb]" />
-          <span className="truncate">{evt.location}</span>
-        </div>
-      </div>
-
-      {/* Right teaser panel */}
-      <div className="md:col-span-3 bg-gradient-to-br from-[#0f1f4e] to-[#1a3580] rounded-2xl p-4 flex flex-col justify-between text-white min-h-[150px]">
-        <div>
-          <div className="font-mono text-[9px] text-amber-200/50 block">SIM NODE RND</div>
-          <div className="text-xs font-sans font-light text-slate-200 mt-2 leading-tight">
-            Target: {evt.targetAudience || 'Ages 8+'}
-          </div>
-        </div>
-        <button
-          onClick={onOpenRegistration}
-          className="w-full py-2 bg-white text-[#0f1f4e] hover:bg-amber-300 rounded-xl text-xs font-bold uppercase transition-all tracking-wide cursor-pointer"
-        >
-          Join Mesh
-        </button>
-      </div>
-    </div>
-  );
-}
 
 export default function App() {
-  // Main Site Core States for Dynamic Sim (Option A: Cloudflare D1/KV local state replication)
+  // Main Site Core States for Dynamic Sim connected directly to Node.js SQL Backend
   const [courses, setCourses] = useState<Course[]>(() => {
-    const saved = localStorage.getItem('yvia_v2_courses');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
-    }
-    // Deep default to all active approved initially
     return initialCourses.map(c => ({ ...c, approved: true }));
   });
 
   const [events, setEvents] = useState<EventItem[]>(() => {
-    const saved = localStorage.getItem('yvia_v2_events');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
-    }
     return initialEvents.map(e => ({ ...e, approved: true }));
   });
 
-  const [submissions, setSubmissions] = useState<Registration[]>(() => {
-    const saved = localStorage.getItem('yvia_v2_submissions');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
-    }
-    // Pre-populate with beautiful, realistic local mesh node profiles to avoid blank look
-    return [
-      {
-        id: "cf-reg-1",
-        fullName: "Alifelix Vance",
-        email: "af.vance@waikato.ac.nz",
-        country: "New Zealand",
-        city: "Hamilton",
-        neighborhood: "Rototuna North",
-        profession: "Senior Firmware Architect",
-        professionalTitle: "Director of Embedded Robotics",
-        desiredTracks: ["Mentor_Track", "Growth_Track"],
-        surplusSkills: ["Outputs_Professional", "Outputs_Space"],
-        submittedAt: "2026-06-01T10:44:00Z"
-      },
-      {
-        id: "cf-reg-2",
-        fullName: "Dr. Clara Hastings",
-        email: "clara.hastings@geometry.org",
-        country: "United Kingdom",
-        city: "London",
-        neighborhood: "Bloomsbury",
-        profession: "Mathematical Computing Lecturer",
-        professionalTitle: "Research Fellow, UCL Knowledge Lab",
-        desiredTracks: ["Growth_Track", "Prosumer_Track"],
-        surplusSkills: ["Outputs_Mentoring", "Outputs_Professional"],
-        submittedAt: "2026-06-02T14:12:30Z"
-      },
-      {
-        id: "cf-reg-3",
-        fullName: "Zimol Zhang",
-        email: "zimol.zhang@outlook.com",
-        country: "China",
-        city: "Shenzhen",
-        neighborhood: "Nanshan Tech Park",
-        profession: "AI Hardware Student Maker",
-        professionalTitle: "Youth Lead Team Lead",
-        desiredTracks: ["Mentee_Track", "Mentor_Track"],
-        surplusSkills: ["Outputs_Mentoring", "Outputs_Cross_Support"],
-        submittedAt: "2026-06-02T22:15:22Z"
-      }
-    ];
+  const [submissions, setSubmissions] = useState<Registration[]>([]);
+  const [adminEmails, setAdminEmails] = useState<any[]>([]);
+  const [currentUserRegistrations, setCurrentUserRegistrations] = useState<any[]>([]);
+  const [toastMessage, setToastMessage] = useState('');
+  const [lang, setLang] = useState<'en' | 'zh'>('zh'); // Default to Chinese for a user friendly introductory experience, can toggle anytime!
+  const t = translations[lang];
+
+  // Dual-pane tabs for user portal
+  const [portalActiveTab, setPortalActiveTab] = useState<'profile' | 'registrations' | 'proposed' | 'inbox'>('profile');
+
+  // Event creation form variables
+  const [isEventFormOpen, setIsEventFormOpen] = useState(false);
+  const [eventFormFields, setEventFormFields] = useState({
+    title: '',
+    location: '',
+    date: '',
+    description: '',
+    targetAudience: '',
+    imagePath: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=600&auto=format&fit=crop'
   });
+  const [eventFormError, setEventFormError] = useState('');
+  const [eventFormSuccess, setEventFormSuccess] = useState('');
 
-  // Track Local Storage updates
-  useEffect(() => {
-    localStorage.setItem('yvia_v2_courses', JSON.stringify(courses));
-  }, [courses]);
+  // Sync data dynamically on mount & whenever updates occur
+  const fetchData = async () => {
+    try {
+      const coursesRes = await fetch('/api/courses');
+      if (coursesRes.ok) {
+        const data = await coursesRes.json();
+        setCourses(data);
+      }
+      
+      const eventsRes = await fetch('/api/events');
+      if (eventsRes.ok) {
+        const data = await eventsRes.json();
+        setEvents(data);
+      }
+
+      const subsRes = await fetch('/api/submissions');
+      if (subsRes.ok) {
+        const data = await subsRes.json();
+        setSubmissions(data);
+      }
+
+      const emailsRes = await fetch('/api/emails');
+      if (emailsRes.ok) {
+        const data = await emailsRes.json();
+        setAdminEmails(data);
+      }
+    } catch (err) {
+      console.warn("SQL Server connection missing. Reverting to sandbox state parameters.", err);
+    }
+  };
+
+  const fetchUserRegistrations = async (userId: string) => {
+    try {
+      const res = await fetch(`/api/user/registrations?userId=${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentUserRegistrations(data);
+      }
+    } catch (err) {
+      console.error("Failed to load user credentials mesh registrations:", err);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem('yvia_v2_events', JSON.stringify(events));
-  }, [events]);
-
-  useEffect(() => {
-    localStorage.setItem('yvia_v2_submissions', JSON.stringify(submissions));
-  }, [submissions]);
+    fetchData();
+  }, []);
 
   // UI Navigation states
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -331,7 +134,7 @@ export default function App() {
   const [adminPassword, setAdminPassword] = useState('');
   const [adminAuthError, setAdminAuthError] = useState('');
   const [adminSearch, setAdminSearch] = useState('');
-  const [adminActiveTab, setAdminActiveTab] = useState<'submissions' | 'catalog' | 'cloudflare'>('submissions');
+  const [adminActiveTab, setAdminActiveTab] = useState<'submissions' | 'catalog' | 'emails' | 'cloudflare'>('submissions');
   
   // Tab-based navigation state replacing bilingual switcher
   const [currentTab, setCurrentTab] = useState<'home' | 'courses' | 'events' | 'about'>('home');
@@ -352,6 +155,15 @@ export default function App() {
       return null;
     }
   });
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchUserRegistrations(currentUser.id);
+    } else {
+      setCurrentUserRegistrations([]);
+    }
+  }, [currentUser]);
+
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isPortalOpen, setIsPortalOpen] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
@@ -385,44 +197,51 @@ export default function App() {
   const [userCaptchaInput, setUserCaptchaInput] = useState('');
   const [captchaError, setCaptchaError] = useState('');
 
-  const handleUserLogin = (e: React.FormEvent) => {
+  const handleUserLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
-    const emailLower = loginEmail.trim().toLowerCase();
-    const found = submissions.find(s => s.email.toLowerCase() === emailLower);
-    
-    if (!found) {
-      setLoginError('No profile in our registry matches this email address.');
-      return;
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        setLoginError(err.error || 'Identity authentication failed.');
+        return;
+      }
+
+      const found = await res.json();
+      localStorage.setItem('yvia_v2_current_user', JSON.stringify(found));
+      setCurrentUser(found);
+      setIsLoginOpen(false);
+      
+      // Auto populate the portal settings and open portal
+      setPortalFields({
+        fullName: found.fullName,
+        neighborhood: found.neighborhood,
+        profession: found.profession,
+        professionalTitle: found.professionalTitle || '',
+        country: found.country,
+        city: found.city
+      });
+      setPortalDesires(found.desiredTracks || []);
+      setPortalSurpluses(found.surplusSkills || []);
+      setPortalPassword(found.password);
+      setPortalSuccessMsg('');
+      setPortalErrors({});
+      setIsPortalOpen(true);
+      setLoginEmail('');
+      setLoginPassword('');
+      setToastMessage(`Welcome back, ${found.fullName}! Connected.`);
+      
+      // Load user registrations
+      fetchUserRegistrations(found.id);
+    } catch (err) {
+      setLoginError('Could not establish connection with authentication gateway.');
     }
-    
-    const correctPassword = found.password || found.email.split('@')[0];
-    if (loginPassword !== correctPassword) {
-      setLoginError('Invalid password. Default password is the part of your email before @.');
-      return;
-    }
-    
-    localStorage.setItem('yvia_v2_current_user', JSON.stringify(found));
-    setCurrentUser(found);
-    setIsLoginOpen(false);
-    
-    // Auto populate the portal settings and open portal
-    setPortalFields({
-      fullName: found.fullName,
-      neighborhood: found.neighborhood,
-      profession: found.profession,
-      professionalTitle: found.professionalTitle || '',
-      country: found.country,
-      city: found.city
-    });
-    setPortalDesires(found.desiredTracks || []);
-    setPortalSurpluses(found.surplusSkills || []);
-    setPortalPassword(found.password || found.email.split('@')[0]);
-    setPortalSuccessMsg('');
-    setPortalErrors({});
-    setIsPortalOpen(true);
-    setLoginEmail('');
-    setLoginPassword('');
   };
 
   const handleOpenPortal = () => {
@@ -443,7 +262,7 @@ export default function App() {
     setIsPortalOpen(true);
   };
 
-  const handleUpdateProfile = (e: React.FormEvent) => {
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setPortalSuccessMsg('');
     const tempErrors: Record<string, string> = {};
@@ -471,27 +290,124 @@ export default function App() {
 
     if (!currentUser) return;
 
-    const updatedUser: Registration = {
-      ...currentUser,
-      fullName: portalFields.fullName,
-      neighborhood: portalFields.neighborhood,
-      profession: portalFields.profession,
-      professionalTitle: portalFields.professionalTitle || 'STEM Participant',
-      country: portalFields.country,
-      city: portalFields.city,
-      desiredTracks: portalDesires,
-      surplusSkills: portalSurpluses,
-      password: portalPassword
-    };
+    try {
+      const res = await fetch('/api/user/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: currentUser.id,
+          fullName: portalFields.fullName,
+          neighborhood: portalFields.neighborhood,
+          profession: portalFields.profession,
+          professionalTitle: portalFields.professionalTitle,
+          password: portalPassword,
+          desiredTracks: portalDesires,
+          surplusSkills: portalSurpluses,
+          country: portalFields.country,
+          city: portalFields.city
+        })
+      });
 
-    // Update submissions list
-    const updatedSubmissions = submissions.map(s => s.id === currentUser.id ? updatedUser : s);
-    setSubmissions(updatedSubmissions);
+      if (!res.ok) {
+        const err = await res.json();
+        setPortalSuccessMsg('');
+        alert(err.error || "Profile update failed.");
+        return;
+      }
 
-    // Update current user
-    localStorage.setItem('yvia_v2_current_user', JSON.stringify(updatedUser));
-    setCurrentUser(updatedUser);
-    setPortalSuccessMsg('Profile and password updated successfully!');
+      const updatedUser = await res.json();
+      localStorage.setItem('yvia_v2_current_user', JSON.stringify(updatedUser));
+      setCurrentUser(updatedUser);
+      setPortalSuccessMsg('Profile and password updated successfully in SQLite database!');
+      setToastMessage("Profile synced with Cloudflare D1.");
+      fetchData();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleRegisterEvent = async (eventId: string) => {
+    if (!currentUser) {
+      setIsLoginOpen(true);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/events/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUser.id,
+          eventId
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || "Failed to register for event node.");
+        return;
+      }
+
+      const output = await res.json();
+      setToastMessage(output.message || "Enrolled successfully in grid event! Confirmation email logged.");
+      
+      // Reload states & registrations
+      fetchData();
+      fetchUserRegistrations(currentUser.id);
+    } catch (e) {
+      console.error("Failed registering for event:", e);
+    }
+  };
+
+  const handleInitiateEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEventFormError('');
+    setEventFormSuccess('');
+
+    if (!currentUser) return;
+
+    if (!eventFormFields.title.trim() || !eventFormFields.location.trim() || !eventFormFields.date.trim() || !eventFormFields.description.trim()) {
+      setEventFormError("Please fill out all required event details.");
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/events/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: eventFormFields.title,
+          location: eventFormFields.location,
+          date: eventFormFields.date,
+          description: eventFormFields.description,
+          targetAudience: eventFormFields.targetAudience || 'Cooperative Youth (Ages 8-15) & Peer Mentors',
+          images: [eventFormFields.imagePath],
+          creatorId: currentUser.id,
+          creatorEmail: currentUser.email
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        setEventFormError(err.error || "Failed initiating event proposal.");
+        return;
+      }
+
+      setEventFormSuccess("Cooperative event proposal successfully compiled! Queued with state: pending. System mail log dispatched!");
+      setToastMessage("Event proposal created! Simulated confirmation email sent.");
+      setEventFormFields({
+        title: '',
+        location: '',
+        date: '',
+        description: '',
+        targetAudience: '',
+        imagePath: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=600&auto=format&fit=crop'
+      });
+      fetchData();
+      fetchUserRegistrations(currentUser.id);
+    } catch (err) {
+      setEventFormError("Gateway timeout. Connect with node operator.");
+    }
   };
 
   const handleLogout = () => {
@@ -500,7 +416,40 @@ export default function App() {
     setIsPortalOpen(false);
   };
 
+  const handleToggleCourseApprove = async (id: string) => {
+    try {
+      const res = await fetch(`/api/courses/toggle-approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      if (res.ok) {
+        setCourses(prev => prev.map(c => c.id === id ? { ...c, approved: !c.approved } : c));
+        setToastMessage("Course approval toggled in SQLite database.");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleToggleEventApprove = async (id: string) => {
+    try {
+      const res = await fetch(`/api/events/toggle-approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      if (res.ok) {
+        setEvents(prev => prev.map(e => e.id === id ? { ...e, approved: !e.approved } : e));
+        setToastMessage("Event approval toggled in SQLite database.");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   // --- MODULE 2: Pop-up form states ---
+  const [showCtaPaths, setShowCtaPaths] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formStep, setFormStep] = useState<1 | 2 | 3 | 4>(1); // Step 1: Base, Step 2: Desire (Q1), Step 3: Surplus (Q2), Step 4: Vector Card
   
@@ -623,47 +572,55 @@ export default function App() {
   };
 
   // Handle final submission + trigger workflows
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     // Check CAPTCHA Code
     if (userCaptchaInput.trim().toUpperCase() !== captchaChallenge) {
       setCaptchaError("Invalid CAPTCHA security code. Please check and try again.");
       return;
     }
 
-    const emailLower = formFields.email.trim().toLowerCase();
-    const emailExists = submissions.some(s => s.email.toLowerCase() === emailLower);
-    if (emailExists) {
-      setCaptchaError("This email has already been registered! Please sign in to modify your details.");
-      return;
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fullName: formFields.fullName,
+          email: formFields.email,
+          country: formFields.country,
+          city: formFields.city,
+          neighborhood: formFields.neighborhood,
+          profession: formFields.profession,
+          professionalTitle: formFields.professionalTitle || "STEM Participant",
+          desiredTracks: selectedDesires,
+          surplusSkills: selectedSurpluses
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        setCaptchaError(errData.error || "Dynamic mesh registration failed.");
+        return;
+      }
+
+      const registration = await res.json();
+      setLastSubmission(registration);
+      
+      // Auto-login the user
+      localStorage.setItem('yvia_v2_current_user', JSON.stringify(registration));
+      setCurrentUser(registration);
+
+      // Reset captcha
+      setUserCaptchaInput('');
+      setCaptchaError('');
+      setCaptchaChallenge(generateCaptcha());
+      setToastMessage(`Welcome to YVIA ${registration.fullName}! Default credentials dispatched to your mail outbox.`);
+      setFormStep(4); // Move straight to dynamic card presentation (Module 3)
+      fetchData();
+    } catch (err) {
+      setCaptchaError("Connection failure with dynamic SQL database mesh.");
     }
-
-    const registration: Registration = {
-      id: "cf-" + Date.now(),
-      fullName: formFields.fullName,
-      email: formFields.email,
-      password: formFields.email.split('@')[0], // Default password: portion of email before @ 
-      country: formFields.country, 
-      city: formFields.city,
-      neighborhood: formFields.neighborhood,
-      profession: formFields.profession,
-      professionalTitle: formFields.professionalTitle || "STEM Participant",
-      desiredTracks: selectedDesires,
-      surplusSkills: selectedSurpluses,
-      submittedAt: new Date().toISOString()
-    };
-
-    setSubmissions([registration, ...submissions]);
-    setLastSubmission(registration);
-    
-    // Auto-login the user
-    localStorage.setItem('yvia_v2_current_user', JSON.stringify(registration));
-    setCurrentUser(registration);
-
-    // Reset captcha
-    setUserCaptchaInput('');
-    setCaptchaError('');
-    setCaptchaChallenge(generateCaptcha());
-    setFormStep(4); // Move straight to dynamic card presentation (Module 3)
   };
 
   // Delete registration (admin feature)
@@ -772,106 +729,149 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
       {/* ========================================================
           STICKY COHESIVE BLUR NAVIGATION BAR
           ======================================================== */}
-      <nav className="sticky top-0 z-40 bg-white/85 backdrop-blur-lg border-b border-[#2563eb]/8 py-4 px-6 md:px-12 flex items-center justify-between transition-all">
-        <div className="flex items-center gap-2 select-none">
-          {/* Logo Brand Frame using original YVIA custom icon */}
-          <svg viewBox="0 0 105 105" className="w-12 h-12 flex-shrink-0">
-            <defs>
-              <linearGradient id="mainGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#2563eb" />
-                <stop offset="55%" stopColor="#7c3aed" />
-                <stop offset="100%" stopColor="#f59e0b" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M40 62 L54 48 L66 60 L82 42"
-              stroke="url(#mainGrad)"
-              strokeWidth="7"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <div className="flex flex-col leading-none">
-            <span className="font-display font-extrabold text-xl tracking-tight text-[#0f1f4e]">YVIA</span>
+      <nav className="sticky top-0 z-40 bg-white/85 backdrop-blur-lg border-b border-[#2563eb]/8 py-3.5 md:py-4 px-4 sm:px-6 md:px-12 flex flex-col sm:flex-row items-center gap-3 sm:gap-4 justify-between transition-all">
+        <div className="flex items-center justify-between w-full sm:w-auto">
+          <div className="flex items-center gap-2 select-none">
+            {/* Logo Brand Frame using original YVIA custom icon */}
+            <svg viewBox="0 0 105 105" className="w-10 h-10 md:w-12 md:h-12 flex-shrink-0">
+              <defs>
+                <linearGradient id="mainGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#2563eb" />
+                  <stop offset="55%" stopColor="#7c3aed" />
+                  <stop offset="100%" stopColor="#f59e0b" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M40 62 L54 48 L66 60 L82 42"
+                stroke="url(#mainGrad)"
+                strokeWidth="7"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <div className="flex flex-col leading-none">
+              <span className="font-display font-extrabold text-base md:text-xl tracking-tight text-[#0f1f4e]">YVIA</span>
+            </div>
+          </div>
+
+          {/* Mobile visible layout for action buttons and language toggle */}
+          <div className="flex sm:hidden items-center gap-2">
+            <button
+              onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
+              className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl font-sans font-extrabold text-[9px] text-slate-500 hover:text-blue-600 active:bg-blue-50 cursor-pointer"
+            >
+              {lang === 'en' ? '中文' : 'EN'}
+            </button>
+
+            {currentUser ? (
+              <button
+                onClick={handleOpenPortal}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl transition-all font-mono font-bold text-[9px] cursor-pointer text-[#0f1f4e]"
+              >
+                <User className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Portal</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleOpenRegistration}
+                className="px-2.5 py-1.5 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white rounded-xl font-bold text-[9px] tracking-wider shadow-lg shadow-blue-500/10 active:translate-y-0.5 transition-all outline-none"
+              >
+                JOIN
+              </button>
+            )}
           </div>
         </div>
 
         {/* Floating Interactive Page Nav Switchers */}
-        <div className="flex items-center gap-1 bg-slate-100 border border-[#2563eb]/12 p-1 rounded-full shadow-inner font-sans font-bold text-xs">
+        <div className="flex items-center gap-0.5 md:gap-1 bg-slate-100 border border-[#2563eb]/12 p-1 rounded-full shadow-inner font-sans font-bold text-[10px] md:text-xs max-w-full overflow-x-auto scrollbar-none">
           <button 
             onClick={() => setCurrentTab('home')} 
-            className={`px-4 py-2 rounded-full transition-all duration-200 cursor-pointer ${
+            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full transition-all duration-200 cursor-pointer shrink-0 ${
               currentTab === 'home' 
                 ? 'bg-[#2563eb] text-white shadow-sm font-extrabold' 
                 : 'text-slate-500 hover:text-[#2563eb]'
             }`}
           >
-            Home
+            {lang === 'zh' ? '首页' : 'Home'}
           </button>
           <button 
             onClick={() => setCurrentTab('courses')} 
-            className={`px-4 py-2 rounded-full transition-all duration-200 cursor-pointer ${
+            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full transition-all duration-200 cursor-pointer shrink-0 ${
               currentTab === 'courses' 
                 ? 'bg-[#2563eb] text-white shadow-sm font-extrabold' 
                 : 'text-slate-500 hover:text-[#2563eb]'
             }`}
           >
-            Courses
+            {lang === 'zh' ? 'STEM 课程' : 'Courses'}
           </button>
           <button 
             onClick={() => setCurrentTab('events')} 
-            className={`px-4 py-2 rounded-full transition-all duration-200 cursor-pointer ${
+            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full transition-all duration-200 cursor-pointer shrink-0 ${
               currentTab === 'events' 
                 ? 'bg-[#2563eb] text-white shadow-sm font-extrabold' 
                 : 'text-slate-500 hover:text-[#2563eb]'
             }`}
           >
-            Events
+            {lang === 'zh' ? '社区活动' : 'Events'}
           </button>
           <button 
             onClick={() => setCurrentTab('about')} 
-            className={`px-4 py-2 rounded-full transition-all duration-200 cursor-pointer ${
+            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full transition-all duration-200 cursor-pointer shrink-0 ${
               currentTab === 'about' 
                 ? 'bg-[#2563eb] text-white shadow-sm font-extrabold' 
                 : 'text-slate-500 hover:text-[#2563eb]'
             }`}
           >
-            About Us
+            {lang === 'zh' ? '关于我们' : 'About Us'}
           </button>
         </div>
 
-        {/* Single frictionless entry action button & user portal gateways */}
-        <div className="flex items-center gap-2">
-          {/* User Portal Gateways */}
+        {/* Desktop friction-free action button & Language capsule */}
+        <div className="hidden sm:flex items-center gap-3">
+          {/* Language Selector Capsule */}
+          <div className="flex bg-slate-150 p-1 rounded-xl border border-slate-200/50 font-sans select-none">
+            <button
+              onClick={() => setLang('en')}
+              className={`px-2.5 py-1 text-[10px] font-extrabold rounded-lg transition-all cursor-pointer ${
+                lang === 'en'
+                  ? 'bg-white text-blue-600 shadow-xs'
+                  : 'text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              EN
+            </button>
+            <button
+              onClick={() => setLang('zh')}
+              className={`px-2.5 py-1 text-[10px] font-extrabold rounded-lg transition-all cursor-pointer ${
+                lang === 'zh'
+                  ? 'bg-white text-blue-600 shadow-xs'
+                  : 'text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              中文
+            </button>
+          </div>
+
           {currentUser ? (
             <button
               onClick={handleOpenPortal}
               className="flex items-center gap-1.5 px-3.5 py-2 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all font-mono font-bold text-xs cursor-pointer text-[#0f1f4e]"
             >
               <User className="w-3.5 h-3.5 text-indigo-600" />
-              <span className="hidden sm:inline">Portal</span>
+              <span>{lang === 'zh' ? '个人中心' : 'Portal'}</span>
               <span className="bg-indigo-50 border border-indigo-250 text-indigo-700 text-[10px] px-1.5 py-0.5 rounded-md font-bold max-w-[80px] truncate">
                 {currentUser.fullName.split(' ')[0]}
               </span>
             </button>
           ) : (
             <button
-              onClick={() => setIsLoginOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-xl transition-all font-mono font-bold text-xs cursor-pointer text-[#0f1f4e]"
+              onClick={handleOpenRegistration}
+              className="px-5 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white rounded-xl font-bold text-xs tracking-wider shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35 hover:-translate-y-0.5 transition-all outline-none cursor-pointer"
             >
-              <LogIn className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
-              <span>Sign In</span>
+              {lang === 'zh' ? '申请入驻' : 'JOIN GRID'}
             </button>
           )}
-
-          {/* Primary CTA button on Nav */}
-          <button
-            onClick={handleOpenRegistration}
-            className="px-5 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white rounded-xl font-bold text-xs tracking-wider shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35 hover:-translate-y-0.5 transition-all outline-none cursor-pointer"
-          >
-            JOIN GRID
-          </button>
         </div>
       </nav>
 
@@ -894,9 +894,9 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
           
           {/* Left Column: Original wordmarks and headers alongside Module 1 Hero CTA redesign card */}
           <div className="lg:col-span-7 space-y-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/15 border border-amber-500/30 text-amber-300 rounded-full font-mono text-xs uppercase tracking-widest font-semibold">
-              <span className="w-2 h-2 bg-amber-400 rounded-full inline-block animate-pulse"></span>
-              <span>YOUTH VOLUNTEER INNOVATION ACADEMY</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/15 border border-amber-500/30 text-amber-300 rounded-full font-mono text-xs uppercase tracking-widest font-semibold animate-pulse">
+              <span className="w-2 h-2 bg-amber-400 rounded-full inline-block"></span>
+              <span>{t.heroBadge}</span>
             </div>
 
             {/* Original Branding preserved */}
@@ -905,7 +905,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                 YVIA
               </h1>
               <p className="font-sans font-light italic text-xl md:text-2xl text-blue-200">
-                Inspiring Youths, Connecting Communities
+                {t.yviaSubtitle}
               </p>
             </div>
 
@@ -914,18 +914,18 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                 ======================================================== */}
             <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-3xl p-6 md:p-8 space-y-6 max-w-2xl shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 py-1.5 px-3 bg-blue-500 text-white font-mono text-[9px] uppercase tracking-wider rounded-bl-xl font-bold">
-                Cooperative Framework
+                {lang === 'zh' ? '协同运行网格' : 'Cooperative Framework'}
               </div>
 
               <div className="space-y-3">
                 {/* Section Title (H2 as requested by PRD) */}
                 <h2 className="font-display font-black text-2xl md:text-3.5xl text-white uppercase tracking-tight">
-                  Explore YVIA Hub
+                  {t.heroTitle}
                 </h2>
                 
                 {/* Sub-text Paragraph (as requested by PRD) */}
                 <p className="font-sans text-sm md:text-base text-slate-100 leading-relaxed font-light">
-                  A decentralized community network where youth-led STEM innovation meets global industry expertise. Share your surplus, multiply your impact.
+                  {t.heroDesc}
                 </p>
               </div>
 
@@ -933,18 +933,18 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
               <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                 <button
                   onClick={handleOpenRegistration}
-                  className="px-8 py-4 bg-gradient-to-r from-amber-500 to-[#f97316] text-white rounded-2xl font-display font-black text-lg uppercase tracking-widest hover:brightness-110 active:scale-98 transition-all shadow-lg shadow-amber-500/20 text-center"
+                  className="px-8 py-4 bg-gradient-to-r from-amber-500 to-[#f97316] text-white rounded-2xl font-display font-black text-lg uppercase tracking-widest hover:brightness-110 active:scale-98 transition-all shadow-lg shadow-amber-500/20 text-center cursor-pointer"
                   id="main-cta-go-button"
                 >
-                   Go 
+                   {t.goBtn}
                 </button>
 
                 <div className="text-xs text-blue-100/70 font-mono space-y-1 py-1">
                   <div className="flex items-center gap-1.5 text-amber-200 font-bold">
-                    <Check className="w-4 h-4" />
-                    <span>Deep Progressive Path Matching</span>
+                    <Check className="w-4 h-4 text-amber-400" />
+                    <span>{t.deepMatchingTitle}</span>
                   </div>
-                  <p>Matches global youth mentor nodes with active parents & global tech experts.</p>
+                  <p className="text-blue-100/80 leading-relaxed">{t.deepMatchingDesc}</p>
                 </div>
               </div>
             </div>
@@ -955,27 +955,33 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
             
             <div className="bg-white/7 backdrop-blur-md border border-white/12 rounded-2xl p-6 transition-all hover:bg-white/12 hover:-translate-y-1">
               <div className="font-display font-black text-4xl md:text-5xl text-amber-300">10+</div>
-              <div className="text-xs text-blue-100/60 uppercase tracking-widest font-bold font-mono mt-2">YEARS OF ACTION</div>
-              <p className="text-slate-200 text-xs mt-2 leading-relaxed font-light">Ecosystem experience across global digital design and hardware mentorship grids.</p>
+              <div className="text-xs text-blue-100/60 uppercase tracking-widest font-bold font-mono mt-2">{t.yearsLabel}</div>
+              <p className="text-slate-200 text-xs mt-2 leading-relaxed font-light">{t.yearsDesc}</p>
             </div>
 
             <div className="bg-white/7 backdrop-blur-md border border-white/12 rounded-2xl p-6 transition-all hover:bg-white/12 hover:-translate-y-1">
               <div className="font-display font-black text-4xl md:text-5xl text-amber-300">2-in-1</div>
-              <div className="text-xs text-blue-100/60 uppercase tracking-widest font-bold font-mono mt-2">DUAL IMPACT</div>
-              <p className="text-slate-200 text-xs mt-2 leading-relaxed font-light">Youth mentors and child mentees grow side-by-side using unified hardware standards.</p>
+              <div className="text-xs text-blue-100/60 uppercase tracking-widest font-bold font-mono mt-2">{t.dualLabel}</div>
+              <p className="text-slate-200 text-xs mt-2 leading-relaxed font-light">{t.dualDesc}</p>
             </div>
 
             <div className="sm:col-span-2 bg-gradient-to-tr from-[#1e4fc7]/50 to-[#2563eb]/20 backdrop-blur-md border border-white/12 rounded-2xl p-6">
-              <div className="font-mono text-xs font-bold text-amber-300 uppercase tracking-widest mb-1">[ DESIGN PRINCIPLES: MESH ]</div>
-              <h3 className="font-display font-extrabold text-xl text-white">Peer-Led · STEM · Community</h3>
+              <div className="font-mono text-xs font-bold text-amber-300 uppercase tracking-widest mb-1">{t.designPrinciples}</div>
+              <h3 className="font-display font-extrabold text-xl text-white">{t.designSub}</h3>
               <p className="text-slate-200 text-xs mt-3 leading-relaxed font-light">
-                We empower students to step up from screen consumers to algorithm creators and leadership guides. Backed by UCL scientific references.
+                {t.designDesc}
               </p>
               
-              <div className="mt-4 flex flex-wrap gap-2">
-                <span className="bg-white/10 text-white rounded-md px-2.5 py-1 text-[10px] font-mono border border-white/5">WiseBot HW</span>
-                <span className="bg-white/10 text-white rounded-md px-2.5 py-1 text-[10px] font-mono border border-white/5">ScratchMaths</span>
-                <span className="bg-white/10 text-white rounded-md px-2.5 py-1 text-[10px] font-mono border border-white/5">Cloudflare D1</span>
+              <div className="mt-4 flex flex-wrap gap-2 animate-pulse">
+                <span className="bg-white/10 text-white rounded-md px-2.5 py-1 text-[10px] font-mono border border-white/5">
+                  {lang === 'zh' ? '智能物理硬件' : 'Physical Hardware'}
+                </span>
+                <span className="bg-white/10 text-white rounded-md px-2.5 py-1 text-[10px] font-mono border border-white/5">
+                  {lang === 'zh' ? '交互式算法' : 'Interactive Algorithms'}
+                </span>
+                <span className="bg-white/10 text-white rounded-md px-2.5 py-1 text-[10px] font-mono border border-white/5">
+                  {lang === 'zh' ? '系统应用实践' : 'Applied Core STEM'}
+                </span>
               </div>
             </div>
 
@@ -987,122 +993,380 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
         )}
 
     {/* ========================================================
-        MISSION SECTION
+        RECONSTRUCTED HOME VIEW: 6 PROGRESSIVE PLAN-BASED MODULES
         ======================================================== */}
     {currentTab === 'home' && (
-      <section id="mission" className="py-8 px-6 max-w-7xl mx-auto w-full">
-        <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#2563eb] uppercase tracking-wider mb-2">
-          <span className="w-8 h-0.5 bg-[#2563eb] rounded-full"></span>
-          <span>Our Mission</span>
-        </div>
-        <h2 className="font-display font-black text-3.5xl md:text-5xl text-[#0f1f4e] uppercase tracking-tight mb-8">
-          Empowering Youth Through<br />Innovation & Peer Leadership
-        </h2>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <div className="lg:col-span-7 bg-white rounded-3xl border border-blue-100 p-8 shadow-sm">
-            <h3 className="font-display font-semibold text-lg text-[#2563eb] mb-4 uppercase">What is YVIA?</h3>
-            <p className="font-sans text-slate-600 leading-relaxed mb-6 font-light">
-              YVIA (Youth Volunteer Innovation Academy) is a youth-led STEM initiative that empowers students to learn, lead, and contribute to their communities through innovation-driven education. By combining peer leadership with hands-on learning, YVIA creates an environment where students are not just learners, but active creators and mentors.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
-              <div className="flex gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold font-mono text-sm shrink-0">1</div>
-                <p className="text-xs text-slate-500 leading-normal">
-                  <strong>Practical Hardware focus:</strong> Drones assemble, sensor robotics programming bypassing screens.
-                </p>
+      <>
+        {/* Module 1: What is YVIA (Value Proposition & Core Concept) */}
+        <section id="what-is-yvia" className="py-16 px-6 max-w-7xl mx-auto w-full border-b border-slate-100">
+          <div className="flex flex-col lg:flex-row items-center gap-12">
+            <div className="lg:w-1/2 space-y-6">
+              <div className="inline-flex items-center gap-2 text-xs font-mono font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full border border-blue-200/50">
+                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                <span>{t.whatIsYviaHeader}</span>
               </div>
-              <div className="flex gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold font-mono text-sm shrink-0">2</div>
-                <p className="text-xs text-slate-500 leading-normal">
-                  <strong>Local learning pods:</strong> Activating neighborhood spaces into physical learning mesh.
+              <h2 className="font-display font-black text-3xl md:text-5xl text-[#0f1f4e] uppercase tracking-tight leading-none text-left">
+                {t.whatIsYviaTitle}
+              </h2>
+              <p className="font-sans text-slate-600 leading-relaxed text-sm md:text-base font-light">
+                {t.whatIsYviaDesc}
+              </p>
+              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
+                <p className="text-xs text-blue-800 leading-relaxed italic">
+                  &ldquo;{lang === 'zh' ? '同伴引领的 STEM 学习极大地提升了参与感、建立了自信心，并在一同协作中帮助学生学得更快、走得更远。' : 'Peer-led STEM learning increases engagement, builds confidence, and helps students learn faster through real collaboration.'}&rdquo;
                 </p>
               </div>
             </div>
+
+            <div className="lg:w-1/2 w-full bg-slate-50/70 rounded-[2.5rem] p-8 border border-blue-100/40 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none"></div>
+              
+              <h3 className="font-display font-black text-[#0f1f4e] text-xl uppercase tracking-tight mb-6">
+                {lang === 'zh' ? '三大核心价值优势' : 'Value Proposition Highlights'}
+              </h3>
+              
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-2.5 bg-white rounded-xl border border-blue-100 shadow-xs shrink-0 text-blue-600 animate-pulse">
+                    <Cpu className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-display font-bold text-slate-800 text-sm">{t.bullet1}</h4>
+                    <p className="text-xs text-slate-500 font-light mt-0.5">{lang === 'zh' ? '动手制作实体硬件与传动结构，让逻辑走下屏幕。' : 'Direct interaction with physical devices and rotors instead of static syntax screens.'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="p-2.5 bg-white rounded-xl border border-blue-100 shadow-xs shrink-0 text-blue-600">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-display font-bold text-slate-800 text-sm">{t.bullet2}</h4>
+                    <p className="text-xs text-slate-500 font-light mt-0.5">{lang === 'zh' ? '中学生导师作为年轻榜样带领小班，激发极客成长自循环。' : 'Experienced teenagers guide younger classes, creating peer-incentivized growth.'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="p-2.5 bg-white rounded-xl border border-blue-100 shadow-xs shrink-0 text-blue-600">
+                    <Heart className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-display font-bold text-slate-800 text-sm">{t.bullet3}</h4>
+                    <p className="text-xs text-slate-500 font-light mt-0.5">{lang === 'zh' ? '由社区自治网络承载，砍掉中间高昂品牌费，支持家庭自组织。' : 'Hosted by local library groups, cutting training overhead and ensuring quality kits.'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Module 2: Why YVIA Matters (Painpoints & Solutions) */}
+        <section id="why-yvia-matters" className="py-16 px-6 bg-slate-50/50 border-b border-slate-100">
+          <div className="max-w-7xl mx-auto w-full">
+            <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
+              <span className="text-xs font-mono font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                {t.whyTitle}
+              </span>
+              <h2 className="font-display font-black text-3xl md:text-5xl text-[#0f1f4e] uppercase tracking-tight">
+                {t.whySubtitle}
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-xs hover:shadow-md transition-all">
+                <div className="w-10 h-10 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 mb-6 shrink-0 font-bold font-mono text-xs">
+                  01
+                </div>
+                <h3 className="font-display font-extrabold text-[#0f1f4e] text-base mb-2">{t.why1Title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed font-light">{t.why1Desc}</p>
+              </div>
+
+              <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-xs hover:shadow-md transition-all">
+                <div className="w-10 h-10 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500 mb-6 shrink-0 font-bold font-mono text-xs">
+                  02
+                </div>
+                <h3 className="font-display font-extrabold text-[#0f1f4e] text-base mb-2">{t.why2Title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed font-light">{t.why2Desc}</p>
+              </div>
+
+              <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-xs hover:shadow-md transition-all">
+                <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 mb-6 shrink-0 font-bold font-mono text-xs">
+                  03
+                </div>
+                <h3 className="font-display font-extrabold text-[#0f1f4e] text-base mb-2">{t.why3Title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed font-light">{t.why3Desc}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Module 3: How It Works (Progressive Steps) */}
+        <section id="how-it-works-3step" className="py-16 px-6 max-w-7xl mx-auto w-full border-b border-slate-100">
+          <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
+            <span className="text-xs font-mono font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+              {t.howTitle}
+            </span>
+            <h2 className="font-display font-black text-3xl md:text-5xl text-[#0f1f4e] uppercase tracking-tight">
+              {t.howSubtitle}
+            </h2>
           </div>
 
-          <div className="lg:col-span-5 bg-gradient-to-br from-[#0f1f4e] to-[#1a3580] rounded-3xl p-6 text-white min-h-[300px] flex flex-col justify-between">
-            <div>
-              <span className="font-mono text-[10px] uppercase text-amber-300 font-bold block mb-1">Peer Ecosystem</span>
-              <h4 className="font-display font-extrabold text-[#fde68a] text-xl mb-3">Dual-Impact System</h4>
-              <p className="text-xs text-slate-200 leading-relaxed font-light mb-6">
-                YVIA creates symmetric loops. Both segments of the node gain structural, communication and logic credentials.
-              </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            {/* Step 1 */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200/50 shadow-xs hover:border-blue-300 transition-all group">
+              <div className="font-display font-black text-6xl text-slate-100 mb-4 transition-colors group-hover:text-blue-100">01</div>
+              <h3 className="font-display font-extrabold text-[#0f1f4e] text-base mb-2">{t.how1Title}</h3>
+              <p className="text-xs text-slate-500 leading-normal font-light">{t.how1Desc}</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-white text-[#0f172a] rounded-2xl p-4 border border-white/5 shadow-sm">
-                <span className="bg-blue-100 text-blue-600 font-mono text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">Mentors</span>
-                <strong className="block text-xs mt-2 text-[#0f1f4e]">Lead & Teach</strong>
-                <p className="text-[10px] text-slate-500 mt-1 leading-normal font-light">Strengthen key coding, speaking and project management capacities.</p>
+            {/* Step 2 */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200/50 shadow-xs hover:border-blue-300 transition-all group">
+              <div className="font-display font-black text-6xl text-slate-100 mb-4 transition-colors group-hover:text-amber-100">02</div>
+              <h3 className="font-display font-extrabold text-[#0f1f4e] text-base mb-2">{t.how2Title}</h3>
+              <p className="text-xs text-slate-500 leading-normal font-light">{t.how2Desc}</p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200/50 shadow-xs hover:border-blue-300 transition-all group">
+              <div className="font-display font-black text-6xl text-slate-100 mb-4 transition-colors group-hover:text-emerald-100">03</div>
+              <h3 className="font-display font-extrabold text-[#0f1f4e] text-base mb-2">{t.how3Title}</h3>
+              <p className="text-xs text-slate-500 leading-normal font-light">{t.how3Desc}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Module 4: What Students Build (Real Projects) */}
+        <section id="what-students-build" className="py-16 px-6 bg-slate-50/50 border-b border-slate-100">
+          <div className="max-w-7xl mx-auto w-full">
+            <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
+              <span className="text-xs font-mono font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                {t.buildTitle}
+              </span>
+              <h2 className="font-display font-black text-3xl md:text-5xl text-[#0f1f4e] uppercase tracking-tight">
+                {t.buildSubtitle}
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Project 1 */}
+              <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs flex flex-col justify-between hover:shadow-md transition-all">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-600 shrink-0">
+                    <Compass className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-extrabold text-[#0f1f4e] text-base">{t.build1Title}</h3>
+                    <p className="text-xs text-slate-500 leading-relaxed font-light mt-2">{t.build1Desc}</p>
+                  </div>
+                </div>
+                <div className="mt-6 flex flex-wrap gap-1.5 pt-4 border-t border-slate-100">
+                  <span className="bg-slate-100 border border-slate-200 rounded-md px-2 py-0.5 text-slate-500 text-[10px] font-mono">
+                    {lang === 'zh' ? '三维空间算法' : 'Spatial Navigation & Logic'}
+                  </span>
+                  <span className="bg-slate-100 border border-slate-200 rounded-md px-2 py-0.5 text-slate-500 text-[10px] font-mono">
+                    {lang === 'zh' ? '数字化应用物理' : 'Applied Physics'}
+                  </span>
+                </div>
               </div>
-              <div className="bg-white text-[#0f172a] rounded-2xl p-4 border border-white/5 shadow-sm">
-                <span className="bg-blue-100 text-blue-600 font-mono text-[9px] font-bold px-2 py-0.5 rounded-full uppercase text-center block">Mentees</span>
-                <strong className="block text-xs mt-2 text-[#0f1f4e]">Learn & Grow</strong>
-                <p className="text-[10px] text-slate-500 mt-1 leading-normal font-light">Develop extreme digital confidence under real teenage role models.</p>
+
+              {/* Project 2 */}
+              <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs flex flex-col justify-between hover:shadow-md transition-all">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 bg-amber-50 border border-amber-100 rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
+                    <Cpu className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-extrabold text-[#0f1f4e] text-base">{t.build2Title}</h3>
+                    <p className="text-xs text-slate-500 leading-relaxed font-light mt-2">{t.build2Desc}</p>
+                  </div>
+                </div>
+                <div className="mt-6 flex flex-wrap gap-1.5 pt-4 border-t border-slate-100">
+                  <span className="bg-slate-100 border border-slate-200 rounded-md px-2 py-0.5 text-slate-500 text-[10px] font-mono">
+                    {lang === 'zh' ? '传感器反馈闭环' : 'Sensor Feedback Loop'}
+                  </span>
+                  <span className="bg-slate-100 border border-slate-200 rounded-md px-2 py-0.5 text-slate-500 text-[10px] font-mono">
+                    {lang === 'zh' ? '智能自主寻路' : 'Autonomous Avoidance'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Project 3 */}
+              <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs flex flex-col justify-between hover:shadow-md transition-all">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0">
+                    <Award className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-extrabold text-[#0f1f4e] text-base">{t.build3Title}</h3>
+                    <p className="text-xs text-slate-500 leading-relaxed font-light mt-2">{t.build3Desc}</p>
+                  </div>
+                </div>
+                <div className="mt-6 flex flex-wrap gap-1.5 pt-4 border-t border-slate-100">
+                  <span className="bg-slate-100 border border-slate-200 rounded-md px-2 py-0.5 text-slate-500 text-[10px] font-mono">
+                    {lang === 'zh' ? '微控制器物理IO' : 'Electrical Signal IO'}
+                  </span>
+                  <span className="bg-slate-100 border border-slate-200 rounded-md px-2 py-0.5 text-slate-500 text-[10px] font-mono">
+                    {lang === 'zh' ? '实体原型拼插' : 'Tactile Prototyping'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
-    )}
+        </section>
 
-    {/* ========================================================
-        HOW IT WORKS (Our Learning Approach)
-        ======================================================== */}
-    {currentTab === 'home' && (
-      <section id="model" className="bg-gradient-to-b from-[#eef4ff] to-[#F8FAFF] py-8 border-t border-blue-500/5">
-        <div className="max-w-7xl mx-auto px-6 w-full">
-          <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#2563eb] uppercase tracking-wider mb-2">
-            <span className="w-8 h-0.5 bg-[#2563eb] rounded-full"></span>
-            <span>How It Works</span>
+        {/* Module 5: Who Can Join (Role mapping) */}
+        <section id="who-can-join" className="py-16 px-6 max-w-7xl mx-auto w-full border-b border-slate-100">
+          <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
+            <span className="text-xs font-mono font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+              {t.rolesTitle}
+            </span>
+            <h2 className="font-display font-black text-3xl md:text-5xl text-[#0f1f4e] uppercase tracking-tight">
+              {t.rolesSubtitle}
+            </h2>
           </div>
-          <h2 className="font-display font-black text-3.5xl md:text-5xl text-[#0f1f4e] uppercase tracking-tight mb-4">
-            Our Learning Approach
-          </h2>
-          <p className="text-slate-600 font-light text-base max-w-2xl mb-12">
-            At the core of YVIA is a scalable peer-led learning model, where senior students take on structured mentorship roles, guiding younger participants through actual programming challenges.
-          </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            <div className="bg-white rounded-3xl p-6 border border-blue-200/40 shadow-sm relative group hover:shadow-md transition-all hover:-translate-y-1">
-              <span className="absolute top-4 right-6 font-display text-5xl font-black text-[#2563eb]/5 select-none transition-colors group-hover:text-[#2563eb]/10">01</span>
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6 shrink-0 border border-blue-100">
-                <Compass className="w-5 h-5" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Rolle 1: Mentees */}
+            <div className="bg-gradient-to-br from-blue-50/50 to-indigo-50/10 rounded-3xl p-6 border border-blue-100 flex flex-col justify-between h-full hover:shadow-xs transition-all">
+              <div className="space-y-4">
+                <span className="bg-blue-100 text-blue-800 font-mono text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider inline-block">Mentees</span>
+                <h3 className="font-display font-black text-[#0f1f4e] text-base">{t.rolesMenteeTitle}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed font-light">{t.rolesMenteeDesc}</p>
               </div>
-              <h4 className="font-display font-bold text-[#0f1f4e] text-base mb-2">Curiosity to Skills</h4>
-              <p className="text-xs text-slate-500 leading-relaxed font-light">
-                Students engage with interactive STEM experiences that transform abstract academic concepts into tangible problem-solving tasks, bridging textbook learning with realities.
-              </p>
+              <ul className="text-[10px] text-slate-600 font-mono space-y-1.5 pt-4 mt-4 border-t border-blue-100/50 list-inside list-disc">
+                <li>{lang === 'zh' ? '在同伴导师指导下在小组内学习' : 'Learn in supportive small peer teams'}</li>
+                <li>{lang === 'zh' ? '拼装简易智能设备与控制系统' : 'Assemble smart physical control devices'}</li>
+                <li>{lang === 'zh' ? '无需任何基础，快乐解锁空间探究' : 'Unlock tactile coordinate computing'}</li>
+              </ul>
             </div>
 
-            <div className="bg-white rounded-3xl p-6 border border-blue-200/40 shadow-sm relative group hover:shadow-md transition-all hover:-translate-y-1">
-              <span className="absolute top-4 right-6 font-display text-5xl font-black text-[#2563eb]/5 select-none transition-colors group-hover:text-[#2563eb]/10">02</span>
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6 shrink-0 border border-blue-100">
-                <Cpu className="w-5 h-5" />
+            {/* Rolle 2: Mentors */}
+            <div className="bg-gradient-to-br from-amber-50/35 to-orange-50/10 rounded-3xl p-6 border border-amber-100 flex flex-col justify-between h-full hover:shadow-xs transition-all">
+              <div className="space-y-4">
+                <span className="bg-amber-100 text-amber-800 font-mono text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider inline-block">Mentors</span>
+                <h3 className="font-display font-black text-[#0f1f4e] text-base">{t.rolesMentorTitle}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed font-light">{t.rolesMentorDesc}</p>
               </div>
-              <h4 className="font-display font-bold text-[#0f1f4e] text-base mb-2">Applied Integration</h4>
-              <p className="text-xs text-slate-500 leading-relaxed font-light">
-                By combining programming with physical systems—such as autonomous drone telemetry—students develop advanced systems thinking and mechatronic literacy in tactile setups.
-              </p>
+              <ul className="text-[10px] text-slate-600 font-mono space-y-1.5 pt-4 mt-4 border-t border-amber-100/50 list-inside list-disc">
+                <li>{lang === 'zh' ? '接受行业专家组的技术培训与认证' : 'Coached directly by senior IT mentors'}</li>
+                <li>{lang === 'zh' ? '备课并领导本街区集会，引领弟弟妹妹' : 'Lead fun local weekly workshops'}</li>
+                <li>{lang === 'zh' ? '积累受行业导师背书的志愿者证书' : 'Acquire certified leadership and credits'}</li>
+              </ul>
             </div>
 
-            <div className="bg-white rounded-3xl p-6 border border-blue-200/40 shadow-sm relative group hover:shadow-md transition-all hover:-translate-y-1">
-              <span className="absolute top-4 right-6 font-display text-5xl font-black text-[#2563eb]/5 select-none transition-colors group-hover:text-[#2563eb]/10">03</span>
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6 shrink-0 border border-blue-100">
-                <Award className="w-5 h-5" />
+            {/* Rolle 3: Experts */}
+            <div className="bg-gradient-to-br from-purple-50/35 to-fuchsia-50/10 rounded-3xl p-6 border border-purple-100 flex flex-col justify-between h-full hover:shadow-xs transition-all">
+              <div className="space-y-4">
+                <span className="bg-purple-100 text-purple-800 font-mono text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider inline-block">Experts</span>
+                <h3 className="font-display font-black text-[#0f1f4e] text-base">{t.rolesExpertTitle}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed font-light">{t.rolesExpertDesc}</p>
               </div>
-              <h4 className="font-display font-bold text-[#0f1f4e] text-base mb-2">Academic Alignment</h4>
-              <p className="text-xs text-slate-500 leading-relaxed font-light">
-                All challenges are aligned to measurable objectives, ensuring child engagement results in genuine academic improvement, presentation skills and logic growth.
-              </p>
+              <ul className="text-[10px] text-slate-600 font-mono space-y-1.5 pt-4 mt-4 border-t border-purple-100/50 list-inside list-disc">
+                <li>{lang === 'zh' ? '开设技术分享并提供青年导师代码Review' : 'Review youth labs or host tech talks'}</li>
+                <li>{lang === 'zh' ? '为本社区开源硬件探索套件质量把关' : 'Vet standardized hardware kit quality'}</li>
+                <li>{lang === 'zh' ? '指导孵化有天赋的少年创客物理项目' : 'Inspire independent young maker builds'}</li>
+              </ul>
             </div>
 
+            {/* Rolle 4: Parents & Families */}
+            <div className="bg-gradient-to-br from-emerald-50/35 to-teal-50/10 rounded-3xl p-6 border border-emerald-100 flex flex-col justify-between h-full hover:shadow-xs transition-all">
+              <div className="space-y-4">
+                <span className="bg-emerald-100 text-emerald-800 font-mono text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider inline-block">Families</span>
+                <h3 className="font-display font-black text-[#0f1f4e] text-lg">{t.rolesParentTitle}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed font-light">{t.rolesParentDesc}</p>
+              </div>
+              <ul className="text-[10px] text-slate-600 font-mono space-y-1.5 pt-4 mt-4 border-t border-emerald-100/50 list-inside list-disc">
+                <li>{lang === 'zh' ? '分享授课微客厅或提供图书室等场所支持' : 'Offer library space or living rooms'}</li>
+                <li>{lang === 'zh' ? '协助集会运营、教具签收与社群沟通' : 'Support operations or material flow'}</li>
+                <li>{lang === 'zh' ? '获得奉献积分，换取进阶硬件或学费支持' : 'Exchange credits to claim advanced kits'}</li>
+              </ul>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
+        {/* Module 6: Call To Action Panel */}
+        <section id="cta-actions-panel" className="py-16 px-6 max-w-4xl mx-auto w-full text-center">
+          <div className="bg-[#0f1f4e] rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden shadow-xl border border-white/5">
+            <div className="absolute -left-20 -bottom-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute -right-20 -top-20 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div className="relative z-10 space-y-8">
+              <div className="space-y-3 max-w-2xl mx-auto">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-[10px] font-mono text-amber-300 font-bold tracking-widest uppercase">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{lang === 'zh' ? '携手共建 · 创新未来' : 'Immediate Neighborhood Network'}</span>
+                </div>
+                <h2 className="font-display font-black text-2xl md:text-4.5xl text-white uppercase tracking-tight leading-none">
+                  {t.ctaTitle}
+                </h2>
+              </div>
+
+              {/* Single main button toggling 4 explicit choices as requested */}
+              {!showCtaPaths ? (
+                <div className="max-w-md mx-auto pt-4">
+                  <button
+                    onClick={() => setShowCtaPaths(true)}
+                    className="w-full px-8 py-5 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg hover:shadow-blue-500/20 cursor-pointer text-center flex items-center justify-center gap-3 border border-blue-400/25 transform hover:-translate-y-0.5 active:translate-y-0 duration-200"
+                  >
+                    <Globe className="w-5 h-5 animate-pulse" />
+                    <span>{t.ctaMainBtn}</span>
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-6 pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
+                    {/* Option 1: Mentor */}
+                    <button
+                      onClick={handleOpenRegistration}
+                      className="px-5 py-4 bg-[#2563eb] hover:bg-blue-600 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-blue-500/10 cursor-pointer text-center flex items-center justify-center gap-2 border border-blue-400/20"
+                    >
+                      <Users className="w-4 h-4 text-amber-300" />
+                      <span>{t.ctaMentorBtn}</span>
+                    </button>
+
+                    {/* Option 2: Mentee */}
+                    <button
+                      onClick={handleOpenRegistration}
+                      className="px-5 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-500/10 cursor-pointer text-center flex items-center justify-center gap-2 border border-amber-400/20"
+                    >
+                      <Sparkles className="w-4 h-4 text-white" />
+                      <span>{t.ctaMenteeBtn}</span>
+                    </button>
+
+                    {/* Option 3: Expert */}
+                    <a
+                      href="mailto:cnshiyigang@gmail.com?subject=Apply to Join YVIA as an Expert Advisor"
+                      className="px-5 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-md text-center flex items-center justify-center gap-2 border border-purple-400/20"
+                    >
+                      <Award className="w-4 h-4 text-amber-300" />
+                      <span>{lang === 'zh' ? '入驻成为专家顾问/技术导师' : 'Join as an Expert/Advisor'}</span>
+                    </a>
+
+                    {/* Option 4: Learning POD */}
+                    <a
+                      href="mailto:cnshiyigang@gmail.com?subject=Start a local neighborhood learning pod"
+                      className="px-5 py-4 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer text-center flex items-center justify-center gap-2 border border-white/5"
+                    >
+                      <Cpu className="w-4 h-4 text-emerald-400" />
+                      <span>{t.ctaContactBtn}</span>
+                    </a>
+                  </div>
+
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => setShowCtaPaths(false)}
+                      className="text-xs text-slate-400 hover:text-white font-mono uppercase tracking-wider flex items-center gap-1.5 py-1 px-3 bg-white/5 rounded-full hover:bg-white/10 transition-all outline-none"
+                    >
+                      ← {lang === 'zh' ? '返回主按钮' : 'Back to main'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      </>
     )}
 
     {/* ========================================================
@@ -1138,6 +1402,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                 key={course.id} 
                 course={course} 
                 onOpenRegistration={handleOpenRegistration} 
+                lang={lang}
               />
             ))
           )}
@@ -1146,97 +1411,246 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
     )}
 
     {/* Event List integrated with same approval mechanics */}
-    {currentTab === 'events' && (
-      <section className="py-10 px-6 max-w-7xl mx-auto w-full">
-        <span className="font-mono text-xs font-bold text-amber-500 uppercase tracking-widest block mb-1">[ On-Site Playability Testing ]</span>
-        <h3 className="font-display font-black text-2.5xl md:text-3.5xl text-[#0f1f4e] uppercase mb-8">Citizens of Play Events</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {events.filter(e => e.approved).length === 0 ? (
-            <div className="col-span-full border border-dashed border-slate-200 text-center rounded-3xl p-8 bg-slate-50 text-xs text-slate-400 font-mono">
-              No interactive testing events published in current local sandbox.
+    {currentTab === 'events' && (() => {
+      const systemEvents = events.filter(e => e.approved && !e.creatorId);
+      const peerEvents = events.filter(e => e.approved && e.creatorId);
+      
+      const registeredCount = currentUserRegistrations.length;
+      // Criteria: Participated in at least 1 verified event OR has specialized professional title/profession
+      const isEligibleToHost = currentUser && (
+        registeredCount >= 1 || 
+        (currentUser.professionalTitle && (
+          currentUser.professionalTitle.toLowerCase().includes('director') || 
+          currentUser.professionalTitle.toLowerCase().includes('lead') || 
+          currentUser.professionalTitle.toLowerCase().includes('expert') || 
+          currentUser.professionalTitle.toLowerCase().includes('academic') || 
+          currentUser.professionalTitle.toLowerCase().includes('systems')
+        )) ||
+        (currentUser.profession && (
+          currentUser.profession.toLowerCase().includes('engineer') || 
+          currentUser.profession.toLowerCase().includes('lecturer') || 
+          currentUser.profession.toLowerCase().includes('pioneer') ||
+          currentUser.profession.toLowerCase().includes('teacher')
+        ))
+      );
+
+      return (
+        <section className="py-10 px-4 sm:px-6 max-w-7xl mx-auto w-full space-y-12">
+          {/* Top Banner */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-slate-100 pb-6">
+            <div>
+              <span className="font-mono text-xs font-bold text-amber-500 uppercase tracking-widest block mb-1">[ On-Site Playability Testing ]</span>
+              <h3 className="font-display font-black text-3.5xl md:text-5xl text-[#0f1f4e] uppercase">Citizens of Play Events</h3>
             </div>
-          ) : (
-            events.filter(e => e.approved).map((evt) => (
-              <EventCard 
-                key={evt.id} 
-                evt={evt} 
-                onOpenRegistration={handleOpenRegistration} 
-              />
-            ))
-          )}
-        </div>
-      </section>
-    )}
-
-    {/* ========================================================
-        WHAT MAKES YVIA DIFFERENT PRESERVED PILLARS
-        ======================================================== */}
-    {currentTab === 'home' && (
-      <section id="different" className="bg-[#0f1f4e] text-white py-8">
-        <div className="max-w-7xl mx-auto px-6 w-full">
-          <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-300 uppercase tracking-wider mb-2">
-            <span className="w-8 h-0.5 bg-amber-300 rounded-full"></span>
-            <span>Our Core Pillars</span>
-          </div>
-          <h2 className="font-display font-black text-3.5xl md:text-5xl text-white uppercase tracking-tight mb-12">
-            What makes YVIA different
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            <div className="bg-white/5 border border-white/8 rounded-3xl p-6 md:p-8 flex items-start gap-4 hover:bg-white/9 transition-all">
-              <div className="w-12 h-12 bg-[#2563eb]/20 border border-[#2563eb]/30 rounded-xl flex items-center justify-center text-[#93c5fd] shrink-0">
-                <Users className="w-6 h-6" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-display font-extrabold text-base text-white">Peer-Led Leadership</h4>
-                <p className="text-xs text-slate-300 leading-relaxed font-light">
-                  A unique, asymmetric operational design that targets leadership growth in senior teens and technical confidence in younger circles simultaneously.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/5 border border-white/8 rounded-3xl p-6 md:p-8 flex items-start gap-4 hover:bg-white/9 transition-all">
-              <div className="w-12 h-12 bg-[#2563eb]/20 border border-[#2563eb]/30 rounded-xl flex items-center justify-center text-[#93c5fd] shrink-0">
-                <Code className="w-6 h-6" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-display font-extrabold text-base text-white">Hardware & Software Integration</h4>
-                <p className="text-xs text-slate-300 leading-relaxed font-light">
-                  Moving beyond pure flat screen play. We build tactile mechatronics, embedded flight firmware models, and physics-driven testing environments.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/5 border border-white/8 rounded-3xl p-6 md:p-8 flex items-start gap-4 hover:bg-white/9 transition-all">
-              <div className="w-12 h-12 bg-[#2563eb]/20 border border-[#2563eb]/30 rounded-xl flex items-center justify-center text-[#93c5fd] shrink-0">
-                <Layers className="w-6 h-6" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-display font-extrabold text-base text-white">Flexible & Scalable Model</h4>
-                <p className="text-xs text-slate-300 leading-relaxed font-light">
-                  Adaptable micro-syllabuses engineered to configure inside local libraries, schools, garages, or community centers regardless of wealth.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white/5 border border-white/8 rounded-3xl p-6 md:p-8 flex items-start gap-4 hover:bg-white/9 transition-all">
-              <div className="w-12 h-12 bg-[#2563eb]/20 border border-[#2563eb]/30 rounded-xl flex items-center justify-center text-[#93c5fd] shrink-0">
-                <Zap className="w-6 h-6" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="font-display font-extrabold text-base text-white">Real-world Relevance</h4>
-                <p className="text-xs text-slate-300 leading-relaxed font-light">
-                  Directing computational skills onto actual peer workshops. Instead of dry syntax, students code and test flight logic in real physical air vectors.
-                </p>
-              </div>
-            </div>
-
+            {currentUser && isEligibleToHost && (
+              <button
+                onClick={() => setIsEventFormOpen(!isEventFormOpen)}
+                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center gap-1.5 shrink-0 shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{isEventFormOpen ? 'Cancel Proposal Vector' : 'Initiate Event Proposal'}</span>
+              </button>
+            )}
           </div>
-        </div>
-      </section>
-    )}
+
+          {/* Form to submit proposals (Eligible users) */}
+          {currentUser && isEligibleToHost && isEventFormOpen && (
+            <div className="bg-slate-50 border-2 border-dashed border-indigo-200/60 rounded-3xl p-6 md:p-8 max-w-3xl mx-auto space-y-4 animate-fadeIn">
+              <div className="flex items-center gap-2 text-indigo-800">
+                <Sparkles className="w-5 h-5 text-indigo-600 shrink-0" />
+                <h4 className="font-display font-bold text-lg">PROPOSE DYNAMIC NETWORK EVENT ELEMENT</h4>
+              </div>
+              <p className="text-xs text-slate-500 leading-normal font-light">
+                As a verified active peer lead, you have permission to seed custom hardware design tasks or learning pods. Proposals will route to YVIA Admin approval queues.
+              </p>
+
+              {eventFormError && <div className="text-xs font-mono text-rose-600 bg-rose-50 px-3.5 py-2 rounded-xl border border-rose-100">{eventFormError}</div>}
+              {eventFormSuccess && <div className="text-xs font-mono text-emerald-700 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-100">{eventFormSuccess}</div>}
+
+              <form onSubmit={handleInitiateEvent} className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono font-bold uppercase text-slate-500">Event Node Title *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g., Autonomous Rotor Micro-Flight Workshop"
+                    value={eventFormFields.title}
+                    onChange={e => setEventFormFields({ ...eventFormFields, title: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl outline-none focus:border-indigo-505"
+                  />
+                </div>
+                
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono font-bold uppercase text-slate-500">Calendar Timestamp *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g., Saturday June 20 at 14:00 NZST"
+                    value={eventFormFields.date}
+                    onChange={e => setEventFormFields({ ...eventFormFields, date: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs bg-white border border-slate-100 border-slate-200 rounded-xl outline-none focus:border-indigo-505"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono font-bold uppercase text-slate-500">Physical Coordinates / Location *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g., Rototuna Community Center (Block B)"
+                    value={eventFormFields.location}
+                    onChange={e => setEventFormFields({ ...eventFormFields, location: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl outline-none focus:border-indigo-505"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono font-bold uppercase text-slate-500">Target Audience Demographics</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Ages 10-16 / Prior drone assembly experience helpful"
+                    value={eventFormFields.targetAudience}
+                    onChange={e => setEventFormFields({ ...eventFormFields, targetAudience: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl outline-none focus:border-indigo-505"
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-1">
+                  <label className="text-[10px] font-mono font-bold uppercase text-slate-500">Cover Display URL</label>
+                  <input
+                    type="text"
+                    placeholder="Link directly to an image"
+                    value={eventFormFields.imagePath}
+                    onChange={e => setEventFormFields({ ...eventFormFields, imagePath: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl outline-none focus:border-indigo-505 font-mono"
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-1">
+                  <label className="text-[10px] font-mono font-bold uppercase text-slate-500">Cooperative Node Description *</label>
+                  <textarea
+                    required
+                    rows={3}
+                    placeholder="Explain key innovation targets, physical deliverables, and learning outcomes..."
+                    value={eventFormFields.description}
+                    onChange={e => setEventFormFields({ ...eventFormFields, description: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl outline-none focus:border-indigo-505 resize-none"
+                  />
+                </div>
+
+                <div className="md:col-span-2 flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsEventFormOpen(false)}
+                    className="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer"
+                  >
+                    Compile & Post
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Info banner for NON-eligible hosts */}
+          {(!currentUser || !isEligibleToHost) && (
+            <div className="bg-amber-50/50 border border-amber-200/70 p-5 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1 max-w-3xl col-span-full">
+                <div className="flex items-center gap-1.5 text-amber-800 text-xs font-bold font-mono">
+                  <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>PEER hosting VECTOR LOCKED</span>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed font-light">
+                  {currentUser 
+                    ? `🔒 To safeguard network security, hosting is restricted to active peer mentors. Please register and participate in at least 1 verified event first.`
+                    : "🔒 Want to host learning nodes near you? Register, join the YVIA Grid, and explore active STEM events to unlock event creation!"
+                  }
+                </p>
+              </div>
+              <button
+                onClick={currentUser ? handleOpenPortal : handleOpenRegistration}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-750 text-white rounded-xl text-[10px] font-bold tracking-wider uppercase shrink-0 transition-all cursor-pointer"
+              >
+                {currentUser ? 'Explore Portal' : 'Join Grid Now'}
+              </button>
+            </div>
+          )}
+
+          {/* 1. SYSTEM-PUBLISHED EVENTS SECTION */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-600 ring-4 ring-blue-100 animate-pulse"></div>
+              <h4 className="font-display font-extrabold text-base text-[#0f1f4e] uppercase tracking-tight">System Verified Channels</h4>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-6">
+              {systemEvents.length === 0 ? (
+                <div className="border border-dashed border-slate-200 text-center rounded-3xl py-12 bg-slate-50 text-xs text-slate-400 font-mono">
+                  No verified system channels loaded in Cloudflare D1 database.
+                </div>
+              ) : (
+                systemEvents.map((evt) => (
+                  <EventCard 
+                    key={evt.id} 
+                    evt={evt} 
+                    currentUser={currentUser}
+                    userRegistrations={currentUserRegistrations}
+                    onRegister={handleRegisterEvent}
+                    lang={lang}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* TRANSITION DIVIDER */}
+          {peerEvents.length > 0 && (
+            <div className="relative py-6">
+              <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                <div className="w-full border-t border-dashed border-indigo-200"></div>
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-[#F8FAFF] px-4 font-mono text-[10px] font-extrabold text-indigo-500 uppercase tracking-widest flex items-center gap-1.5 border border-indigo-150 rounded-full py-1">
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Autonomous Peer Mesh Contributions</span>
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* 2. PEER-INITIATED EVENTS SECTION */}
+          {peerEvents.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-purple-600 ring-4 ring-purple-150 animate-bounce"></div>
+                <h4 className="font-display font-extrabold text-base text-[#0f1f4e] uppercase tracking-tight">Grid-Initiated Autonomous Events</h4>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-6">
+                {peerEvents.map((evt) => (
+                  <EventCard 
+                    key={evt.id} 
+                    evt={evt} 
+                    currentUser={currentUser}
+                    userRegistrations={currentUserRegistrations}
+                    onRegister={handleRegisterEvent}
+                    lang={lang}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      );
+    })()}
+
+
 
     {/* ========================================================
         OUR VISION (About Page Tab Content)
@@ -1268,36 +1682,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
       </div>
     )}
 
-    {/* ========================================================
-        PUBLIC CALL TO ACTION - CONTACT
-        ======================================================== */}
-    {currentTab === 'home' && (
-      <section id="contact" className="py-8 border-t border-slate-100 text-center px-6 max-w-xl mx-auto">
-        <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-50 text-[#2563eb] rounded-2xl mb-4 border border-blue-100">
-          <Heart className="w-5 h-5" />
-        </div>
-        <h3 className="font-display font-black text-3xl text-[#0f1f4e] uppercase tracking-tight mb-2">Bring YVIA to Your Community</h3>
-        <p className="text-slate-500 text-sm leading-relaxed font-light mb-8">
-          Are you a parent seeking high-tier hardware integration for your child? Or an industry architect willing to gift code review hours to talented youth mentors? Jump into our network.
-        </p>
 
-        <div className="flex flex-col sm:flex-row items-stretch justify-center gap-3">
-          <button
-            onClick={handleOpenRegistration}
-            className="px-6 py-3.5 bg-[#2563eb] text-white rounded-xl font-bold hover:bg-blue-700 transition-all text-sm uppercase tracking-wider shadow-md shadow-blue-500/10"
-          >
-            Register Profile Vector
-          </button>
-          
-          <a
-            href="mailto:yigang@yvia.uk"
-            className="px-6 py-3.5 border border-slate-300 hover:border-[#1E293B] text-slate-700 rounded-xl font-bold text-sm bg-white transition-all uppercase tracking-wider"
-          >
-            Direct Inquiry Email
-          </a>
-        </div>
-      </section>
-    )}
   </main>
 
       {/* ========================================================
@@ -1478,7 +1863,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                     <User className="w-3 h-3" />
                     <span>Secure Hub • {currentUser.email}</span>
                   </div>
-                  <h3 className="font-display font-bold text-base uppercase tracking-tight">Edit Your Profile Vector</h3>
+                  <h3 className="font-display font-bold text-base uppercase tracking-tight">Grid Member Portal</h3>
                 </div>
                 <div className="flex items-center gap-2">
                   <button 
@@ -1497,191 +1882,341 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                 </div>
               </div>
 
-              <form onSubmit={handleUpdateProfile} className="p-5 md:p-6 overflow-y-auto flex-1 space-y-4">
-                
-                {portalSuccessMsg && (
-                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-3.5 text-xs font-mono font-bold flex items-center gap-2 animate-pulse">
-                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>{portalSuccessMsg}</span>
-                  </div>
-                )}
+              {/* Secure Sub-navigation Tabs */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-slate-200 bg-[#f8fafc] shrink-0 text-[10px] font-bold font-mono">
+                <button
+                  type="button"
+                  onClick={() => setPortalActiveTab('profile')}
+                  className={`py-2.5 text-center border-b-2 transition-all ${
+                    portalActiveTab === 'profile' 
+                      ? 'border-emerald-600 text-emerald-950 bg-white shadow-sm' 
+                      : 'border-transparent text-slate-500 hover:text-slate-800 bg-slate-50/50'
+                  }`}
+                >
+                  ⚙️ PROFILE
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPortalActiveTab('registrations')}
+                  className={`py-2.5 text-center border-b-2 transition-all ${
+                    portalActiveTab === 'registrations' 
+                      ? 'border-emerald-600 text-emerald-950 bg-white shadow-sm' 
+                      : 'border-transparent text-slate-500 hover:text-slate-800 bg-slate-50/50'
+                  }`}
+                >
+                  📅 ENROLLMENTS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPortalActiveTab('proposed')}
+                  className={`py-2.5 text-center border-b-2 transition-all ${
+                    portalActiveTab === 'proposed' 
+                      ? 'border-indigo-600 text-indigo-950 bg-white shadow-sm' 
+                      : 'border-transparent text-slate-500 hover:text-slate-800 bg-slate-50/50'
+                  }`}
+                >
+                  💡 PROPOSALS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPortalActiveTab('inbox')}
+                  className={`py-2.5 text-center border-b-2 transition-all ${
+                    portalActiveTab === 'inbox' 
+                      ? 'border-blue-600 text-blue-950 bg-white shadow-sm' 
+                      : 'border-transparent text-slate-500 hover:text-slate-800 bg-slate-50/50'
+                  }`}
+                >
+                  📬 INBOX
+                </button>
+              </div>
 
-                {/* 1. Identity Grid (Blocked Email change) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Full Name</label>
+              {portalActiveTab === 'profile' && (
+                <form onSubmit={handleUpdateProfile} className="p-5 md:p-6 overflow-y-auto flex-1 space-y-4">
+                  {portalSuccessMsg && (
+                    <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-3.5 text-xs font-mono font-bold flex items-center gap-2 animate-pulse">
+                      <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{portalSuccessMsg}</span>
+                    </div>
+                  )}
+
+                  {/* 1. Identity Grid (Blocked Email change) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Full Name</label>
+                      <input 
+                        type="text" 
+                        value={portalFields.fullName}
+                        onChange={e => setPortalFields({ ...portalFields, fullName: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none font-sans"
+                      />
+                      {portalErrors.fullName && <p className="text-[10px] font-mono font-bold text-rose-500">{portalErrors.fullName}</p>}
+                    </div>
+
+                    <div className="space-y-1 relative">
+                      <label className="text-[10px] font-mono font-bold text-slate-400 block uppercase flex justify-between items-center">
+                        <span>Unique ID (Email)</span>
+                        <span className="text-[8px] font-mono font-bold text-slate-400 bg-slate-100 px-1 py-0.5 rounded uppercase">Immutable</span>
+                      </label>
+                      <input 
+                        type="text" 
+                        value={currentUser.email}
+                        disabled
+                        className="w-full bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed text-xs p-3 rounded-xl outline-none font-sans"
+                        title="Username/Email cannot be changed once vector index is saved."
+                      />
+                    </div>
+                  </div>
+
+                  {/* 2. Credentials (Secure Password modification) */}
+                  <div className="bg-amber-500/5 border border-amber-300/20 rounded-xl p-3.5 space-y-2">
+                    <div className="space-y-0.5">
+                      <h4 className="text-[10px] font-mono font-bold text-amber-800 uppercase flex items-center gap-1">
+                        <Lock className="w-3 h-3 text-amber-600" />
+                        <span>Security Password Credentials</span>
+                      </h4>
+                      <p className="text-[10px] text-amber-700 font-light leading-normal">
+                        Customize your authentication password below. Username is set to your email.
+                      </p>
+                    </div>
                     <input 
                       type="text" 
-                      value={portalFields.fullName}
-                      onChange={e => setPortalFields({ ...portalFields, fullName: e.target.value })}
+                      value={portalPassword}
+                      onChange={e => setPortalPassword(e.target.value)}
+                      placeholder="Enter your customized strong password"
+                      className="w-full bg-white border border-amber-300/40 focus:border-amber-500 text-xs p-2.5 rounded-lg transition-all outline-none font-mono"
+                    />
+                    {portalErrors.password && <p className="text-[10px] font-mono font-bold text-rose-500">{portalErrors.password}</p>}
+                  </div>
+
+                  {/* 3. Local Grid details */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Country</label>
+                      <select 
+                        value={portalFields.country}
+                        onChange={e => setPortalFields({ ...portalFields, country: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none h-11"
+                      >
+                        {countriesList.map((c, i) => (
+                          <option key={i} value={c}>{c}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">City</label>
+                      <input 
+                        type="text" 
+                        value={portalFields.city}
+                        onChange={e => setPortalFields({ ...portalFields, city: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 col-span-full">
+                    <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Neighborhood Mesh Address</label>
+                    <input 
+                      type="text" 
+                      value={portalFields.neighborhood}
+                      onChange={e => setPortalFields({ ...portalFields, neighborhood: e.target.value })}
                       className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none font-sans"
                     />
-                    {portalErrors.fullName && <p className="text-[10px] font-mono font-bold text-rose-500">{portalErrors.fullName}</p>}
+                    {portalErrors.neighborhood && <p className="text-[10px] font-mono font-bold text-rose-500">{portalErrors.neighborhood}</p>}
                   </div>
 
-                  <div className="space-y-1 relative">
-                    <label className="text-[10px] font-mono font-bold text-slate-400 block uppercase flex justify-between items-center">
-                      <span>Unique ID (Email)</span>
-                      <span className="text-[8px] font-mono font-bold text-slate-400 bg-slate-100 px-1 py-0.5 rounded uppercase">Immutable</span>
-                    </label>
-                    <input 
-                      type="text" 
-                      value={currentUser.email}
-                      disabled
-                      className="w-full bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed text-xs p-3 rounded-xl outline-none font-sans"
-                      title="Username/Email cannot be changed once vector index is saved."
-                    />
-                  </div>
-                </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Profession</label>
+                      <input 
+                        type="text" 
+                        value={portalFields.profession}
+                        onChange={e => setPortalFields({ ...portalFields, profession: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none"
+                      />
+                      {portalErrors.profession && <p className="text-[10px] font-mono font-bold text-rose-500">{portalErrors.profession}</p>}
+                    </div>
 
-                {/* 2. Credentials (Secure Password modification) */}
-                <div className="bg-amber-500/5 border border-amber-300/20 rounded-xl p-3.5 space-y-2">
-                  <div className="space-y-0.5">
-                    <h4 className="text-[10px] font-mono font-bold text-amber-800 uppercase flex items-center gap-1">
-                      <Lock className="w-3 h-3 text-amber-600" />
-                      <span>Security Password Credentials</span>
-                    </h4>
-                    <p className="text-[10px] text-amber-700 font-light leading-normal">
-                      Customize your authentication password below. Username is set to your email.
-                    </p>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Academic Title</label>
+                      <input 
+                        type="text" 
+                        value={portalFields.professionalTitle}
+                        onChange={e => setPortalFields({ ...portalFields, professionalTitle: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none"
+                      />
+                    </div>
                   </div>
-                  <input 
-                    type="text" 
-                    value={portalPassword}
-                    onChange={e => setPortalPassword(e.target.value)}
-                    placeholder="Enter your customized strong password"
-                    className="w-full bg-white border border-amber-300/40 focus:border-amber-500 text-xs p-2.5 rounded-lg transition-all outline-none font-mono"
-                  />
-                  {portalErrors.password && <p className="text-[10px] font-mono font-bold text-rose-500">{portalErrors.password}</p>}
-                </div>
 
-                {/* 3. Local Grid details */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Country</label>
-                    <select 
-                      value={portalFields.country}
-                      onChange={e => setPortalFields({ ...portalFields, country: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none h-11"
+                  {/* 4. Interactive Track/Surplus Toggles for modifications */}
+                  <div className="space-y-3 pt-2">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-mono font-bold text-slate-700 uppercase block">Modify Desire Tracks</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {desiresOptions.map((opt, i) => {
+                          const active = portalDesires.includes(opt.flag);
+                          return (
+                            <button
+                              type="button"
+                              key={i}
+                              onClick={() => {
+                                if (active) setPortalDesires(portalDesires.filter(d => d !== opt.flag));
+                                else setPortalDesires([...portalDesires, opt.flag]);
+                              }}
+                              className={`px-2.5 py-1 border rounded-lg text-[11px] font-medium cursor-pointer transition-colors ${
+                                active ? 'bg-indigo-600 border-indigo-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                              }`}
+                            >
+                              {opt.flag.replace('_', ' ')}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-mono font-bold text-slate-700 uppercase block">Modify Surplus Capacities</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {surplusOptions.map((opt, i) => {
+                          const active = portalSurpluses.includes(opt.flag);
+                          return (
+                            <button
+                              type="button"
+                              key={i}
+                              onClick={() => {
+                                if (active) setPortalSurpluses(portalSurpluses.filter(s => s !== opt.flag));
+                                else setPortalSurpluses([...portalSurpluses, opt.flag]);
+                              }}
+                              className={`px-2.5 py-1 border rounded-lg text-[11px] font-medium cursor-pointer transition-colors ${
+                                active ? 'bg-emerald-600 border-emerald-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                              }`}
+                            >
+                              {opt.flag.replace('Outputs_', '').replace('_', ' ')}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+                    <button 
+                      type="button"
+                      onClick={() => setIsPortalOpen(false)}
+                      className="px-3.5 py-1.5 text-slate-500 text-xs font-bold uppercase hover:bg-slate-50 rounded-xl cursor-pointer"
                     >
-                      {countriesList.map((c, i) => (
-                        <option key={i} value={c}>{c}</option>
-                      ))}
-                    </select>
+                      Close
+                    </button>
+                    <button 
+                      type="submit"
+                      className="px-4.5 py-2.5 bg-indigo-900 hover:bg-indigo-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                    >
+                      Save Changes
+                    </button>
                   </div>
+                </form>
+              )}
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">City</label>
-                    <input 
-                      type="text" 
-                      value={portalFields.city}
-                      onChange={e => setPortalFields({ ...portalFields, city: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1 col-span-full">
-                  <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Neighborhood Mesh Address</label>
-                  <input 
-                    type="text" 
-                    value={portalFields.neighborhood}
-                    onChange={e => setPortalFields({ ...portalFields, neighborhood: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none font-sans"
-                  />
-                  {portalErrors.neighborhood && <p className="text-[10px] font-mono font-bold text-rose-500">{portalErrors.neighborhood}</p>}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Profession</label>
-                    <input 
-                      type="text" 
-                      value={portalFields.profession}
-                      onChange={e => setPortalFields({ ...portalFields, profession: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none"
-                    />
-                    {portalErrors.profession && <p className="text-[10px] font-mono font-bold text-rose-500">{portalErrors.profession}</p>}
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Academic Title</label>
-                    <input 
-                      type="text" 
-                      value={portalFields.professionalTitle}
-                      onChange={e => setPortalFields({ ...portalFields, professionalTitle: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none"
-                    />
-                  </div>
-                </div>
-
-                {/* 4. Interactive Track/Surplus Toggles for modifications */}
-                <div className="space-y-3 pt-2">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-slate-700 uppercase block">Modify Desire Tracks</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {desiresOptions.map((opt, i) => {
-                        const active = portalDesires.includes(opt.flag);
-                        return (
-                          <button
-                            type="button"
-                            key={i}
-                            onClick={() => {
-                              if (active) setPortalDesires(portalDesires.filter(d => d !== opt.flag));
-                              else setPortalDesires([...portalDesires, opt.flag]);
-                            }}
-                            className={`px-2.5 py-1 border rounded-lg text-[11px] font-medium cursor-pointer transition-colors ${
-                              active ? 'bg-indigo-600 border-indigo-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                            }`}
-                          >
-                            {opt.flag.replace('_', ' ')}
-                          </button>
-                        );
-                      })}
+              {portalActiveTab === 'registrations' && (() => {
+                const registeredEventsList = events.filter(e => currentUserRegistrations.includes(e.id));
+                return (
+                  <div className="p-5 md:p-6 overflow-y-auto flex-1 space-y-4">
+                    <div className="flex items-center gap-1.5 text-xs text-[#0f1f4e] font-bold uppercase font-mono mb-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>My Registered Event Enrollments ({registeredEventsList.length})</span>
+                    </div>
+                    <div className="space-y-4">
+                      {registeredEventsList.length === 0 ? (
+                        <div className="border border-dashed border-slate-200 text-center rounded-2xl py-8 bg-slate-50 text-xs text-slate-400 font-mono">
+                          You have not registered for any upcoming events. Go to Events to sign up!
+                        </div>
+                      ) : (
+                        registeredEventsList.map(evt => (
+                          <div key={evt.id} className="bg-emerald-50/40 border border-emerald-150 p-4 rounded-2xl flex justify-between items-center gap-3">
+                            <div className="space-y-0.5 min-w-0">
+                              <h4 className="font-display font-semibold text-xs text-[#0f1f4e] truncate uppercase">{evt.title}</h4>
+                              <p className="text-[10px] text-slate-500 font-mono flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <span>{evt.date}</span>
+                              </p>
+                            </div>
+                            <span className="bg-emerald-600 text-white font-mono font-bold text-[9px] px-2.5 py-1 rounded-full uppercase shrink-0">ENROLLED</span>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
+                );
+              })()}
 
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-mono font-bold text-slate-700 uppercase block">Modify Surplus Capacities</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {surplusOptions.map((opt, i) => {
-                        const active = portalSurpluses.includes(opt.flag);
-                        return (
-                          <button
-                            type="button"
-                            key={i}
-                            onClick={() => {
-                              if (active) setPortalSurpluses(portalSurpluses.filter(s => s !== opt.flag));
-                              else setPortalSurpluses([...portalSurpluses, opt.flag]);
-                            }}
-                            className={`px-2.5 py-1 border rounded-lg text-[11px] font-medium cursor-pointer transition-colors ${
-                              active ? 'bg-emerald-600 border-emerald-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                            }`}
-                          >
-                            {opt.flag.replace('Outputs_', '').replace('_', ' ')}
-                          </button>
-                        );
-                      })}
+              {portalActiveTab === 'proposed' && (() => {
+                const myInitiatedEvents = events.filter(e => e.creatorId === currentUser.id);
+                return (
+                  <div className="p-5 md:p-6 overflow-y-auto flex-1 space-y-4">
+                    <div className="flex items-center gap-1.5 text-xs text-[#0f1f4e] font-bold uppercase font-mono mb-2">
+                      <Layers className="w-4 h-4 text-indigo-600 shrink-0" />
+                      <span>My Proposed Event Nodes ({myInitiatedEvents.length})</span>
+                    </div>
+                    <div className="space-y-4">
+                      {myInitiatedEvents.length === 0 ? (
+                        <div className="border border-dashed border-slate-200 text-center rounded-2xl py-8 bg-slate-50 text-xs text-slate-400 font-mono">
+                          You have not initiated any event proposals yet.
+                        </div>
+                      ) : (
+                        myInitiatedEvents.map(evt => {
+                          const statusStyles = 
+                            evt.approved 
+                              ? 'bg-emerald-500 text-white border-emerald-500' 
+                              : evt.status === 'past' 
+                                ? 'bg-rose-500 text-white border-rose-500' 
+                                : 'bg-amber-500 text-slate-900 border-amber-300';
+                          const statusLabel = 
+                            evt.approved 
+                              ? 'Verified & Live' 
+                              : evt.status === 'past' 
+                                ? 'Rejected' 
+                                : 'Awaiting Approval';
+
+                          return (
+                            <div key={evt.id} className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-2">
+                              <div className="flex justify-between items-start gap-4">
+                                <div className="space-y-0.5 min-w-0">
+                                  <h5 className="font-display font-semibold text-xs text-slate-800 truncate uppercase">{evt.title}</h5>
+                                  <p className="text-[10px] text-slate-400 font-mono">{evt.date}</p>
+                                </div>
+                                <span className={`font-mono font-bold text-[8px] px-2 py-0.5 rounded-md uppercase border shrink-0 ${statusStyles}`}>
+                                  {statusLabel}
+                                </span>
+                              </div>
+                              <p className="text-[10px] text-slate-600 leading-relaxed font-sans font-light bg-white border border-slate-100 p-2 rounded-xl">
+                                {evt.description}
+                              </p>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {portalActiveTab === 'inbox' && (
+                <div className="p-5 md:p-6 overflow-y-auto flex-1 space-y-4 text-xs">
+                  <div className="flex items-center gap-1.5 text-xs text-[#0f1f4e] font-bold uppercase font-mono mb-2">
+                    <Mail className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span>My Grid Inbox & Logs</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="border border-indigo-100/80 rounded-2xl p-4 bg-indigo-50/20 space-y-1">
+                      <span className="font-mono text-[9px] text-indigo-500 font-bold block">SYSTEM NOTIFICATION • DEPLOYMENT BROADCAST</span>
+                      <strong className="text-slate-800 block text-xs uppercase font-display">Sandbox Cloudflare D1 Active Vector</strong>
+                      <p className="text-[11px] text-slate-500 font-sans font-light leading-normal">
+                        Welcome to your YVIA secure member hub! Your profile registries, course catalogs, and event credentials are synchronized safely across real SQLite database tables. Change your password, register for courses, or host localized learning nodes anytime!
+                      </p>
                     </div>
                   </div>
                 </div>
-
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
-                  <button 
-                    type="button"
-                    onClick={() => setIsPortalOpen(false)}
-                    className="px-3.5 py-1.5 text-slate-500 text-xs font-bold uppercase hover:bg-slate-50 rounded-xl cursor-pointer"
-                  >
-                    Close
-                  </button>
-                  <button 
-                    type="submit"
-                    className="px-4.5 py-2.5 bg-indigo-900 hover:bg-indigo-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </form>
+              )}
             </motion.div>
           </div>
         )}
@@ -1865,10 +2400,24 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                     </div>
 
                     {/* Step 1 Actions */}
-                    <div className="pt-4 border-t border-slate-100 flex justify-end">
+                    <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <span className="text-slate-500 font-light font-sans">Already signed up on the Grid?</span>
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            setIsFormOpen(false);
+                            setIsLoginOpen(true);
+                          }}
+                          className="text-[#2563eb] hover:underline font-extrabold cursor-pointer outline-none transition-all"
+                        >
+                          Sign In
+                        </button>
+                      </div>
+
                       <button 
                         type="submit"
-                        className="px-6 py-3 bg-[#0f1f4e] text-white hover:bg-blue-700 transition-all font-bold text-xs uppercase tracking-wider rounded-xl flex items-center gap-2"
+                        className="w-full sm:w-auto px-6 py-3 bg-[#0f1f4e] text-white hover:bg-blue-700 transition-all font-bold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2"
                       >
                         Next Step <ArrowRight className="w-3.5 h-3.5" />
                       </button>
@@ -2342,9 +2891,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                               <input 
                                 type="checkbox" 
                                 checked={course.approved}
-                                onChange={() => {
-                                  setCourses(prev => prev.map(c => c.id === course.id ? { ...c, approved: !c.approved } : c));
-                                }}
+                                onChange={() => handleToggleCourseApprove(course.id)}
                                 className="w-5 h-5 rounded border-slate-700 bg-slate-800 text-[#2563eb] focus:ring-[#2563eb] transition-all cursor-pointer pointer-events-auto"
                               />
                             </div>
@@ -2365,9 +2912,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                               <input 
                                 type="checkbox" 
                                 checked={evt.approved}
-                                onChange={() => {
-                                  setEvents(prev => prev.map(e => e.id === evt.id ? { ...e, approved: !e.approved } : e));
-                                }}
+                                onChange={() => handleToggleEventApprove(evt.id)}
                                 className="w-5 h-5 rounded border-slate-700 bg-slate-800 text-[#2563eb] focus:ring-[#2563eb] transition-all cursor-pointer pointer-events-auto"
                               />
                             </div>
