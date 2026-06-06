@@ -29,11 +29,14 @@ import {
   ArrowRight,
   ExternalLink,
   MapPinHouse,
-  Users
+  Users,
+  LogIn,
+  LogOut,
+  User
 } from 'lucide-react';
 import { initialCourses, initialEvents } from './data';
 import { Course, EventItem, Registration } from './types';
-import AboutUsPage from './components/MapComponent';
+{/* import AboutUsPage from './components/MapComponent';   */}
 
 
 
@@ -266,8 +269,8 @@ export default function App() {
     return [
       {
         id: "cf-reg-1",
-        fullName: "Alistair Vance",
-        email: "a.vance@waikato.ac.nz",
+        fullName: "Alifelix Vance",
+        email: "af.vance@waikato.ac.nz",
         country: "New Zealand",
         city: "Hamilton",
         neighborhood: "Rototuna North",
@@ -280,7 +283,7 @@ export default function App() {
       {
         id: "cf-reg-2",
         fullName: "Dr. Clara Hastings",
-        email: "clara.hastings@geometry-lab.org",
+        email: "clara.hastings@geometry.org",
         country: "United Kingdom",
         city: "London",
         neighborhood: "Bloomsbury",
@@ -292,8 +295,8 @@ export default function App() {
       },
       {
         id: "cf-reg-3",
-        fullName: "Zimo Zhang",
-        email: "zimo.zhang@outlook.com",
+        fullName: "Zimol Zhang",
+        email: "zimol.zhang@outlook.com",
         country: "China",
         city: "Shenzhen",
         neighborhood: "Nanshan Tech Park",
@@ -321,11 +324,181 @@ export default function App() {
 
   // UI Navigation states
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
+    return sessionStorage.getItem('yvia_admin_auth') === 'true';
+  });
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminAuthError, setAdminAuthError] = useState('');
   const [adminSearch, setAdminSearch] = useState('');
   const [adminActiveTab, setAdminActiveTab] = useState<'submissions' | 'catalog' | 'cloudflare'>('submissions');
   
   // Tab-based navigation state replacing bilingual switcher
   const [currentTab, setCurrentTab] = useState<'home' | 'courses' | 'events' | 'about'>('home');
+
+  // Check admin security secondary link on mount
+  useEffect(() => {
+    if (window.location.pathname === '/yvia_admin' || window.location.hash === '#yvia_admin') {
+      setIsAdminOpen(true);
+    }
+  }, []);
+
+  // --- MODULE 2.5: User Authentication & Personal Profile Portal ---
+  const [currentUser, setCurrentUser] = useState<Registration | null>(() => {
+    const saved = localStorage.getItem('yvia_v2_current_user');
+    try {
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isPortalOpen, setIsPortalOpen] = useState(false);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+
+  const [portalFields, setPortalFields] = useState({
+    fullName: '',
+    neighborhood: '',
+    profession: '',
+    professionalTitle: '',
+    country: 'New Zealand',
+    city: 'Hamilton'
+  });
+  const [portalDesires, setPortalDesires] = useState<string[]>([]);
+  const [portalSurpluses, setPortalSurpluses] = useState<string[]>([]);
+  const [portalPassword, setPortalPassword] = useState('');
+  const [portalSuccessMsg, setPortalSuccessMsg] = useState('');
+  const [portalErrors, setPortalErrors] = useState<Record<string, string>>({});
+
+  // CAPTCHA Challenge generator
+  const generateCaptcha = () => {
+    const chars = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+    let code = '';
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  };
+  const [captchaChallenge, setCaptchaChallenge] = useState(() => generateCaptcha());
+  const [userCaptchaInput, setUserCaptchaInput] = useState('');
+  const [captchaError, setCaptchaError] = useState('');
+
+  const handleUserLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    const emailLower = loginEmail.trim().toLowerCase();
+    const found = submissions.find(s => s.email.toLowerCase() === emailLower);
+    
+    if (!found) {
+      setLoginError('No profile in our registry matches this email address.');
+      return;
+    }
+    
+    const correctPassword = found.password || found.email.split('@')[0];
+    if (loginPassword !== correctPassword) {
+      setLoginError('Invalid password. Default password is the part of your email before @.');
+      return;
+    }
+    
+    localStorage.setItem('yvia_v2_current_user', JSON.stringify(found));
+    setCurrentUser(found);
+    setIsLoginOpen(false);
+    
+    // Auto populate the portal settings and open portal
+    setPortalFields({
+      fullName: found.fullName,
+      neighborhood: found.neighborhood,
+      profession: found.profession,
+      professionalTitle: found.professionalTitle || '',
+      country: found.country,
+      city: found.city
+    });
+    setPortalDesires(found.desiredTracks || []);
+    setPortalSurpluses(found.surplusSkills || []);
+    setPortalPassword(found.password || found.email.split('@')[0]);
+    setPortalSuccessMsg('');
+    setPortalErrors({});
+    setIsPortalOpen(true);
+    setLoginEmail('');
+    setLoginPassword('');
+  };
+
+  const handleOpenPortal = () => {
+    if (!currentUser) return;
+    setPortalFields({
+      fullName: currentUser.fullName,
+      neighborhood: currentUser.neighborhood,
+      profession: currentUser.profession,
+      professionalTitle: currentUser.professionalTitle || '',
+      country: currentUser.country,
+      city: currentUser.city
+    });
+    setPortalDesires(currentUser.desiredTracks || []);
+    setPortalSurpluses(currentUser.surplusSkills || []);
+    setPortalPassword(currentUser.password || currentUser.email.split('@')[0]);
+    setPortalSuccessMsg('');
+    setPortalErrors({});
+    setIsPortalOpen(true);
+  };
+
+  const handleUpdateProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPortalSuccessMsg('');
+    const tempErrors: Record<string, string> = {};
+    let hasError = false;
+
+    if (!portalFields.fullName.trim()) {
+      tempErrors.fullName = "Name is required";
+      hasError = true;
+    }
+    if (!portalFields.neighborhood.trim()) {
+      tempErrors.neighborhood = "Neighborhood address is required";
+      hasError = true;
+    }
+    if (!portalFields.profession.trim()) {
+      tempErrors.profession = "Profession is required";
+      hasError = true;
+    }
+    if (!portalPassword.trim()) {
+      tempErrors.password = "Password cannot be empty";
+      hasError = true;
+    }
+
+    setPortalErrors(tempErrors);
+    if (hasError) return;
+
+    if (!currentUser) return;
+
+    const updatedUser: Registration = {
+      ...currentUser,
+      fullName: portalFields.fullName,
+      neighborhood: portalFields.neighborhood,
+      profession: portalFields.profession,
+      professionalTitle: portalFields.professionalTitle || 'STEM Participant',
+      country: portalFields.country,
+      city: portalFields.city,
+      desiredTracks: portalDesires,
+      surplusSkills: portalSurpluses,
+      password: portalPassword
+    };
+
+    // Update submissions list
+    const updatedSubmissions = submissions.map(s => s.id === currentUser.id ? updatedUser : s);
+    setSubmissions(updatedSubmissions);
+
+    // Update current user
+    localStorage.setItem('yvia_v2_current_user', JSON.stringify(updatedUser));
+    setCurrentUser(updatedUser);
+    setPortalSuccessMsg('Profile and password updated successfully!');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('yvia_v2_current_user');
+    setCurrentUser(null);
+    setIsPortalOpen(false);
+  };
 
   // --- MODULE 2: Pop-up form states ---
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -411,7 +584,7 @@ export default function App() {
       email: "marcus@rome-stem.org",
       country: "New Zealand",
       city: "Hamilton",
-      neighborhood: "Flagstaff West Mesh Section B",
+      neighborhood: "Flagstaff West Section B",
       profession: "Mechatronics Research Fellow",
       professionalTitle: "Lead Systems Engineer"
     });
@@ -426,10 +599,19 @@ export default function App() {
     e.preventDefault();
     const tempErrors: Record<string, string> = {};
     if (!formFields.fullName.trim()) tempErrors.fullName = "Name is required";
+
+    const emailLower = formFields.email.trim().toLowerCase();
     if (!formFields.email.trim()) {
       tempErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formFields.email)) {
       tempErrors.email = "Enter a valid email address";
+    } else {
+      const emailExists = submissions.some(s => s.email.toLowerCase() === emailLower);
+      if (emailExists) {
+        tempErrors.email = "This email is already registered! Please sign in to modify your submitted details.";
+        setErrors(tempErrors);
+        return;
+      }
     }
     if (!formFields.neighborhood.trim()) tempErrors.neighborhood = "Neighborhood mesh coordinate required for matching";
     if (!formFields.profession.trim()) tempErrors.profession = "Profession is required";
@@ -442,11 +624,25 @@ export default function App() {
 
   // Handle final submission + trigger workflows
   const handleFinalSubmit = () => {
+    // Check CAPTCHA Code
+    if (userCaptchaInput.trim().toUpperCase() !== captchaChallenge) {
+      setCaptchaError("Invalid CAPTCHA security code. Please check and try again.");
+      return;
+    }
+
+    const emailLower = formFields.email.trim().toLowerCase();
+    const emailExists = submissions.some(s => s.email.toLowerCase() === emailLower);
+    if (emailExists) {
+      setCaptchaError("This email has already been registered! Please sign in to modify your details.");
+      return;
+    }
+
     const registration: Registration = {
       id: "cf-" + Date.now(),
       fullName: formFields.fullName,
       email: formFields.email,
-      country: formFields.country,
+      password: formFields.email.split('@')[0], // Default password: portion of email before @ 
+      country: formFields.country, 
       city: formFields.city,
       neighborhood: formFields.neighborhood,
       profession: formFields.profession,
@@ -458,6 +654,15 @@ export default function App() {
 
     setSubmissions([registration, ...submissions]);
     setLastSubmission(registration);
+    
+    // Auto-login the user
+    localStorage.setItem('yvia_v2_current_user', JSON.stringify(registration));
+    setCurrentUser(registration);
+
+    // Reset captcha
+    setUserCaptchaInput('');
+    setCaptchaError('');
+    setCaptchaChallenge(generateCaptcha());
     setFormStep(4); // Move straight to dynamic card presentation (Module 3)
   };
 
@@ -589,7 +794,6 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
           </svg>
           <div className="flex flex-col leading-none">
             <span className="font-display font-extrabold text-xl tracking-tight text-[#0f1f4e]">YVIA</span>
-            <span className="text-[9px] font-mono font-bold tracking-wider text-gray-500 uppercase mt-0.5">HUB 2.0</span>
           </div>
         </div>
 
@@ -637,25 +841,34 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
           </button>
         </div>
 
-        {/* Single frictionless entry action button & admin gateway toggle */}
-        <div className="flex items-center gap-3">
-          {/* Admin backlog button */}
-          <button 
-            onClick={() => setIsAdminOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 hover:border-[#1E293B] hover:bg-slate-50 rounded-xl transition-all font-mono font-bold text-xs"
-            title="Database API Backdoor Panel (Option A)"
-          >
-            <Lock className="w-3.5 h-3.5 text-[#2563eb]" />
-            <span className="hidden sm:inline">Mesh Admin</span>
-            <span className="bg-slate-100 text-[#0f1f4e] border border-slate-200 text-[10px] px-1.5 py-0.5 rounded-md font-bold">
-              {submissions.length} Nodes
-            </span>
-          </button>
+        {/* Single frictionless entry action button & user portal gateways */}
+        <div className="flex items-center gap-2">
+          {/* User Portal Gateways */}
+          {currentUser ? (
+            <button
+              onClick={handleOpenPortal}
+              className="flex items-center gap-1.5 px-3.5 py-2 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all font-mono font-bold text-xs cursor-pointer text-[#0f1f4e]"
+            >
+              <User className="w-3.5 h-3.5 text-indigo-600" />
+              <span className="hidden sm:inline">Portal</span>
+              <span className="bg-indigo-50 border border-indigo-250 text-indigo-700 text-[10px] px-1.5 py-0.5 rounded-md font-bold max-w-[80px] truncate">
+                {currentUser.fullName.split(' ')[0]}
+              </span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsLoginOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-xl transition-all font-mono font-bold text-xs cursor-pointer text-[#0f1f4e]"
+            >
+              <LogIn className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
+              <span>Sign In</span>
+            </button>
+          )}
 
           {/* Primary CTA button on Nav */}
           <button
             onClick={handleOpenRegistration}
-            className="px-5 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white rounded-xl font-bold text-xs tracking-wider shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35 hover:-translate-y-0.5 transition-all outline-none"
+            className="px-5 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white rounded-xl font-bold text-xs tracking-wider shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35 hover:-translate-y-0.5 transition-all outline-none cursor-pointer"
           >
             JOIN GRID
           </button>
@@ -723,7 +936,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                   className="px-8 py-4 bg-gradient-to-r from-amber-500 to-[#f97316] text-white rounded-2xl font-display font-black text-lg uppercase tracking-widest hover:brightness-110 active:scale-98 transition-all shadow-lg shadow-amber-500/20 text-center"
                   id="main-cta-go-button"
                 >
-                  [ Go ]
+                   Go 
                 </button>
 
                 <div className="text-xs text-blue-100/70 font-mono space-y-1 py-1">
@@ -731,7 +944,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                     <Check className="w-4 h-4" />
                     <span>Deep Progressive Path Matching</span>
                   </div>
-                  <p>Matches Hamilton youth mentor nodes with active parents & global tech experts.</p>
+                  <p>Matches global youth mentor nodes with active parents & global tech experts.</p>
                 </div>
               </div>
             </div>
@@ -916,7 +1129,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
               <ShieldAlert className="w-12 h-12 text-slate-400 mx-auto mb-4" />
               <h3 className="font-display font-extrabold text-xl text-slate-700">No STEM Syllabus Approved for Display</h3>
               <p className="text-sm text-slate-400 max-w-md mx-auto mt-2 leading-relaxed">
-                Admins have unapproved all items. Open the "🔒 Mesh Admin" panel at the top-right and toggle "Approved" checkmarks under the "Direct SQL Sync" subpanel to reload!
+                Admins have unapproved all items. Open the " Mesh Admin" panel at the top-right and toggle "Approved" checkmarks under the "Direct SQL Sync" subpanel to reload!
               </p>
             </div>
           ) : (
@@ -1030,8 +1243,8 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
         ======================================================== */}
     {currentTab === 'about' && (
       <div className="space-y-12 py-8 px-6 max-w-7xl mx-auto w-full">
-        <section id="vision">
-          <div className="bg-gradient-to-r from-[#1e3a8a] to-[#1d4ed8] rounded-[2.5rem] p-8 md:p-16 text-white relative overflow-hidden shadow-lg">
+        <section id="vision" className="max-w-4xl mx-auto w-full">
+          <div className="bg-gradient-to-r from-[#1e3a8a] to-[#1d4ed8] rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden shadow-lg">
             <div className="absolute -right-24 -top-24 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
             <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-white/5 rounded-full pointer-events-none"></div>
 
@@ -1050,8 +1263,8 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
           </div>
         </section>
 
-        {/* Community Map Integration */}
-        <AboutUsPage submissions={submissions} />
+        {/* Community Map Integration
+        <AboutUsPage submissions={submissions} /> */}
       </div>
     )}
 
@@ -1063,7 +1276,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
         <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-50 text-[#2563eb] rounded-2xl mb-4 border border-blue-100">
           <Heart className="w-5 h-5" />
         </div>
-        <h3 className="font-display font-black text-3xl text-[#0f1f4e] uppercase tracking-tight mb-2">Bring YVIA to Hamilton</h3>
+        <h3 className="font-display font-black text-3xl text-[#0f1f4e] uppercase tracking-tight mb-2">Bring YVIA to Your Community</h3>
         <p className="text-slate-500 text-sm leading-relaxed font-light mb-8">
           Are you a parent seeking high-tier hardware integration for your child? Or an industry architect willing to gift code review hours to talented youth mentors? Jump into our network.
         </p>
@@ -1077,7 +1290,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
           </button>
           
           <a
-            href="mailto:cnshiyigang@gmail.com"
+            href="mailto:yigang@yvia.uk"
             className="px-6 py-3.5 border border-slate-300 hover:border-[#1E293B] text-slate-700 rounded-xl font-bold text-sm bg-white transition-all uppercase tracking-wider"
           >
             Direct Inquiry Email
@@ -1091,24 +1304,388 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
           STANDARD PUBLIC FOOTER
           ======================================================== */}
       <footer className="bg-[#0f172a] text-slate-500 py-12 px-6 border-t border-slate-900 select-none text-xs font-mono font-medium">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-center md:text-left space-y-1">
-            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest text-[#93c5fd]">YVIA UK COOPERATIVE CONTEXT</p>
-            <p>&copy; 2026 Youth Volunteer Innovation Academy (YVIA). All rights reserved.</p>
-          </div>
+        <div className="max-w-7xl mx-auto space-y-8">
+          
+          {/* Compiled Download Hub Section (Admin Diagnostics Mode ONLY) */}
+          {isAdminAuthenticated && (
+            <div className="bg-slate-900/40 p-6 rounded-2xl border border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="space-y-1.5 text-center md:text-left">
+                <h4 className="text-slate-200 font-bold text-sm tracking-tight flex items-center justify-center md:justify-start gap-2 uppercase">
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  Compiled Production Build Download Hub (dist)
+                </h4>
+                <p className="text-[11px] text-slate-400 font-sans max-w-xl leading-relaxed">
+                  Directly retrieve the freshly built static application files via your browser! Save them locally to form your completed dist bundle: place <code>index.html</code> in the root and both JS/CSS inside an <code>assets/</code> subfolder.
+                </p>
+              </div>
+              
+              <div className="flex flex-wrap items-center justify-center gap-4">
+                <a 
+                  href="/compiled_build/index.html" 
+                  download="index.html"
+                  className="bg-[#2563eb] hover:bg-blue-600 text-white font-sans font-bold px-4 py-2.5 rounded-xl transition-all uppercase tracking-wider text-[11px] leading-none flex items-center gap-2 border border-blue-400/20 cursor-pointer"
+                >
+                  <span>Download index.html</span>
+                </a>
+                <a 
+                  href="/compiled_build/assets/index.js" 
+                  download="index.js"
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-sans font-bold px-4 py-2.5 rounded-xl transition-all uppercase tracking-wider text-[11px] leading-none flex items-center gap-2 border border-white/5 cursor-pointer"
+                >
+                  <span>Download index.js</span>
+                </a>
+                <a 
+                  href="/compiled_build/assets/index.css" 
+                  download="index.css"
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-sans font-bold px-4 py-2.5 rounded-xl transition-all uppercase tracking-wider text-[11px] leading-none flex items-center gap-2 border border-white/5 cursor-pointer"
+                >
+                  <span>Download index.css</span>
+                </a>
+              </div>
+            </div>
+          )}
+          
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-6 border-t border-slate-900/60">
+            <div className="text-center md:text-left space-y-1">
+              <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest text-[#93c5fd]">YVIA UK COOPERATIVE CONTEXT</p>
+              <p>&copy; 2026 Youth Volunteer Innovation Academy (YVIA). All rights reserved.</p>
+            </div>
 
-          <div className="flex items-center gap-4">
-            <span className="text-emerald-500 animate-pulse font-bold">• SIMULATOR LIVE</span>
-            <span className="text-slate-800">|</span>
-            <button 
-              onClick={() => setIsAdminOpen(true)}
-              className="text-slate-400 hover:text-white transition-colors underline"
-            >
-              Open Database Manager Backdoor (D1 SQL)
-            </button>
+            <div className="flex items-center gap-4">
+              <span className="text-emerald-500 animate-pulse font-bold">• SIMULATOR LIVE</span>
+            </div>
           </div>
         </div>
       </footer>
+
+
+
+      {/* =========================================================================================
+          MODULE 4: USER GATEWAY / DECENTRALIZED SIGN IN LIGHTBOX
+          ========================================================================================= */}
+      <AnimatePresence>
+        {isLoginOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsLoginOpen(false)}
+              className="absolute inset-0 bg-[#0f172a]/70 backdrop-blur-sm"
+            />
+            
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              className="bg-white rounded-[2rem] border border-slate-200 shadow-2xl max-w-sm w-full relative z-10 overflow-hidden flex flex-col"
+            >
+              <div className="bg-gradient-to-r from-[#0f1f4e] to-[#1a3580] p-5 text-white flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-wider text-amber-300 font-bold">
+                    <LogIn className="w-3 h-3" />
+                    <span>Member Core Ingress</span>
+                  </div>
+                  <h3 className="font-display font-bold text-base uppercase tracking-tight">Access Your YVIA Profile</h3>
+                </div>
+                <button 
+                  onClick={() => setIsLoginOpen(false)}
+                  className="p-1 text-white/50 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleUserLogin} className="p-5 space-y-4">
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[11px] text-[#0f1f4e] leading-normal font-light">
+                  <strong>First login?</strong> Your username is your email, and your default password is the characters before the &apos;@&apos; symbol in your email.
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono font-bold text-slate-500 uppercase block">Username / Email</label>
+                  <input 
+                    type="email"
+                    value={loginEmail}
+                    onChange={e => setLoginEmail(e.target.value)}
+                    placeholder="e.g. alistair@work.org"
+                    className="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none font-sans"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono font-bold text-slate-500 uppercase block">Password</label>
+                  <input 
+                    type="password"
+                    value={loginPassword}
+                    onChange={e => setLoginPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-slate-50 border border-slate-300 focus:border-indigo-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none font-sans"
+                    required
+                  />
+                </div>
+
+                {loginError && (
+                  <p className="text-[11px] font-mono font-bold text-rose-500 bg-rose-50 border border-rose-100 p-2.5 rounded-xl">
+                    ⚠️ {loginError}
+                  </p>
+                )}
+
+                <div className="pt-2 flex items-center justify-end gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => setIsLoginOpen(false)}
+                    className="px-3.5 py-1.5 text-slate-500 text-xs font-bold uppercase hover:bg-slate-50 rounded-xl cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    className="px-4.5 py-2.5 bg-[#0f1f4e] hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                  >
+                    Authenticate Profile
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* =========================================================================================
+          MODULE 5: SECURE USER PROFILE PROFILE & PASSWORD ADJUSTMENT
+          ========================================================================================= */}
+      <AnimatePresence>
+        {isPortalOpen && currentUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsPortalOpen(false)}
+              className="absolute inset-0 bg-[#0f172a]/70 backdrop-blur-sm"
+            />
+            
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              className="bg-white rounded-[2rem] border border-slate-200 shadow-2xl max-w-xl w-full relative z-10 overflow-hidden flex flex-col max-h-[88vh]"
+            >
+              <div className="bg-gradient-to-r from-emerald-900 to-[#0f1f4e] p-5 text-white flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-emerald-300 font-bold">
+                    <User className="w-3 h-3" />
+                    <span>Secure Hub • {currentUser.email}</span>
+                  </div>
+                  <h3 className="font-display font-bold text-base uppercase tracking-tight">Edit Your Profile Vector</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={handleLogout}
+                    className="px-2.5 py-1.5 bg-rose-600/20 hover:bg-rose-600 border border-rose-500/35 hover:border-rose-400 text-rose-100 hover:text-white rounded-lg text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-1 cursor-pointer"
+                  >
+                    <LogOut className="w-3 h-3" />
+                    <span>Log Out</span>
+                  </button>
+                  <button 
+                    onClick={() => setIsPortalOpen(false)}
+                    className="p-1 text-white/50 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <form onSubmit={handleUpdateProfile} className="p-5 md:p-6 overflow-y-auto flex-1 space-y-4">
+                
+                {portalSuccessMsg && (
+                  <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-3.5 text-xs font-mono font-bold flex items-center gap-2 animate-pulse">
+                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>{portalSuccessMsg}</span>
+                  </div>
+                )}
+
+                {/* 1. Identity Grid (Blocked Email change) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Full Name</label>
+                    <input 
+                      type="text" 
+                      value={portalFields.fullName}
+                      onChange={e => setPortalFields({ ...portalFields, fullName: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none font-sans"
+                    />
+                    {portalErrors.fullName && <p className="text-[10px] font-mono font-bold text-rose-500">{portalErrors.fullName}</p>}
+                  </div>
+
+                  <div className="space-y-1 relative">
+                    <label className="text-[10px] font-mono font-bold text-slate-400 block uppercase flex justify-between items-center">
+                      <span>Unique ID (Email)</span>
+                      <span className="text-[8px] font-mono font-bold text-slate-400 bg-slate-100 px-1 py-0.5 rounded uppercase">Immutable</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      value={currentUser.email}
+                      disabled
+                      className="w-full bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed text-xs p-3 rounded-xl outline-none font-sans"
+                      title="Username/Email cannot be changed once vector index is saved."
+                    />
+                  </div>
+                </div>
+
+                {/* 2. Credentials (Secure Password modification) */}
+                <div className="bg-amber-500/5 border border-amber-300/20 rounded-xl p-3.5 space-y-2">
+                  <div className="space-y-0.5">
+                    <h4 className="text-[10px] font-mono font-bold text-amber-800 uppercase flex items-center gap-1">
+                      <Lock className="w-3 h-3 text-amber-600" />
+                      <span>Security Password Credentials</span>
+                    </h4>
+                    <p className="text-[10px] text-amber-700 font-light leading-normal">
+                      Customize your authentication password below. Username is set to your email.
+                    </p>
+                  </div>
+                  <input 
+                    type="text" 
+                    value={portalPassword}
+                    onChange={e => setPortalPassword(e.target.value)}
+                    placeholder="Enter your customized strong password"
+                    className="w-full bg-white border border-amber-300/40 focus:border-amber-500 text-xs p-2.5 rounded-lg transition-all outline-none font-mono"
+                  />
+                  {portalErrors.password && <p className="text-[10px] font-mono font-bold text-rose-500">{portalErrors.password}</p>}
+                </div>
+
+                {/* 3. Local Grid details */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Country</label>
+                    <select 
+                      value={portalFields.country}
+                      onChange={e => setPortalFields({ ...portalFields, country: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none h-11"
+                    >
+                      {countriesList.map((c, i) => (
+                        <option key={i} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">City</label>
+                    <input 
+                      type="text" 
+                      value={portalFields.city}
+                      onChange={e => setPortalFields({ ...portalFields, city: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1 col-span-full">
+                  <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Neighborhood Mesh Address</label>
+                  <input 
+                    type="text" 
+                    value={portalFields.neighborhood}
+                    onChange={e => setPortalFields({ ...portalFields, neighborhood: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none font-sans"
+                  />
+                  {portalErrors.neighborhood && <p className="text-[10px] font-mono font-bold text-rose-500">{portalErrors.neighborhood}</p>}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Profession</label>
+                    <input 
+                      type="text" 
+                      value={portalFields.profession}
+                      onChange={e => setPortalFields({ ...portalFields, profession: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none"
+                    />
+                    {portalErrors.profession && <p className="text-[10px] font-mono font-bold text-rose-500">{portalErrors.profession}</p>}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono font-bold text-slate-700 block uppercase">Academic Title</label>
+                    <input 
+                      type="text" 
+                      value={portalFields.professionalTitle}
+                      onChange={e => setPortalFields({ ...portalFields, professionalTitle: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:bg-white text-xs p-3 rounded-xl transition-all outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* 4. Interactive Track/Surplus Toggles for modifications */}
+                <div className="space-y-3 pt-2">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-slate-700 uppercase block">Modify Desire Tracks</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {desiresOptions.map((opt, i) => {
+                        const active = portalDesires.includes(opt.flag);
+                        return (
+                          <button
+                            type="button"
+                            key={i}
+                            onClick={() => {
+                              if (active) setPortalDesires(portalDesires.filter(d => d !== opt.flag));
+                              else setPortalDesires([...portalDesires, opt.flag]);
+                            }}
+                            className={`px-2.5 py-1 border rounded-lg text-[11px] font-medium cursor-pointer transition-colors ${
+                              active ? 'bg-indigo-600 border-indigo-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                            }`}
+                          >
+                            {opt.flag.replace('_', ' ')}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-mono font-bold text-slate-700 uppercase block">Modify Surplus Capacities</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {surplusOptions.map((opt, i) => {
+                        const active = portalSurpluses.includes(opt.flag);
+                        return (
+                          <button
+                            type="button"
+                            key={i}
+                            onClick={() => {
+                              if (active) setPortalSurpluses(portalSurpluses.filter(s => s !== opt.flag));
+                              else setPortalSurpluses([...portalSurpluses, opt.flag]);
+                            }}
+                            className={`px-2.5 py-1 border rounded-lg text-[11px] font-medium cursor-pointer transition-colors ${
+                              active ? 'bg-emerald-600 border-emerald-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                            }`}
+                          >
+                            {opt.flag.replace('Outputs_', '').replace('_', ' ')}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => setIsPortalOpen(false)}
+                    className="px-3.5 py-1.5 text-slate-500 text-xs font-bold uppercase hover:bg-slate-50 rounded-xl cursor-pointer"
+                  >
+                    Close
+                  </button>
+                  <button 
+                    type="submit"
+                    className="px-4.5 py-2.5 bg-indigo-900 hover:bg-indigo-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
 
       {/* =========================================================================================
@@ -1402,6 +1979,42 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                       })}
                     </div>
 
+                    {/* CAPTCHA Security Verification block */}
+                    <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
+                      <label className="text-xs font-mono font-bold text-slate-700 block uppercase">
+                        �️ CAPTCHA Security Check (Required)
+                      </label>
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                        <div className="bg-gradient-to-r from-blue-950 to-slate-950 text-amber-300 font-mono font-bold text-lg px-4 py-2 rounded-lg select-none tracking-widest border border-indigo-700/50 shadow-inner flex items-center justify-between gap-3 min-w-[130px]">
+                          <span className="italic line-through decoration-amber-500/50">{captchaChallenge}</span>
+                          <button 
+                            type="button" 
+                            onClick={() => {
+                              setCaptchaChallenge(generateCaptcha());
+                              setUserCaptchaInput('');
+                              setCaptchaError('');
+                            }} 
+                            className="bg-white/10 hover:bg-white/20 text-amber-300 hover:text-white p-1 rounded transition-colors text-xs"
+                            title="Generate New CAPTCHA Code"
+                          >
+                            �
+                          </button>
+                        </div>
+                        <div className="flex-1">
+                          <input 
+                            type="text"
+                            value={userCaptchaInput}
+                            onChange={e => {
+                              setUserCaptchaInput(e.target.value);
+                              setCaptchaError('');
+                            }}
+                            placeholder="Enter the 4-char security CAPTCHA..."
+                            className="w-full bg-white border border-slate-300 hover:border-[#2563eb]/45 focus:border-[#2563eb] font-sans text-xs p-3 rounded-xl transition-all outline-none"
+                          />
+                        </div>
+                      </div>
+                      {captchaError && <p className="text-[11px] font-mono font-bold text-rose-500 mt-1">{captchaError}</p>}
+                    </div>
                     {/* Step 3 Actions */}
                     <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                       <button 
@@ -1433,111 +2046,10 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
 
                       <div className="space-y-1">
                         <h4 className="font-display font-black text-2xl text-[#0f1f4e] uppercase tracking-tight">
-                          Vector Calculations Complete!
+                          Calculations!
                         </h4>
-                        <p className="text-slate-500 text-xs">
-                          Registration synced into Option A Simulated Cloudflare D1 Node Table. Here is your calculated ecosystem placement.
-                        </p>
                       </div>
 
-                      {/* ========================================================
-                          MODULE 3.1: DYNAMIC ECOSYSTEM IDENTITY CARD
-                          ======================================================== */}
-                      <div className="border border-slate-200 rounded-[2rem] p-6 bg-gradient-to-br from-slate-50 to-slate-100/50 shadow-sm border border-[#2563eb]/10 text-left relative overflow-hidden max-w-md mx-auto">
-                        <div className="absolute top-0 right-0 py-1 px-3 bg-black text-white font-mono text-[8px] uppercase tracking-wider font-semibold rounded-bl-xl">
-                          Vector Status Core
-                        </div>
-                        
-                        <span className="font-mono text-[9px] text-[#2563eb] uppercase tracking-widest font-bold block mb-1">
-                          Calculated Vector Placement
-                        </span>
-                        
-                        <div className={`inline-block py-1 px-2.5 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider bg-gradient-to-r ${vector.color} text-white mb-4 shadow-sm`}>
-                          {vector.level}
-                        </div>
-
-                        {/* Summary Block */}
-                        <div className="space-y-3">
-                          <div>
-                            <span className="text-[10px] font-mono text-slate-400 block uppercase">NODE MEMBER ID</span>
-                            <span className="text-xs font-mono font-bold text-slate-800">{lastSubmission.id}</span>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <span className="text-[10px] font-mono text-slate-400 block uppercase">FULL NAME</span>
-                              <span className="text-xs font-sans font-bold text-[#0f1f4e]">{lastSubmission.fullName}</span>
-                            </div>
-                            <div>
-                              <span className="text-[10px] font-mono text-slate-400 block uppercase">EMAIL LOCATION</span>
-                              <span className="text-xs font-sans text-slate-600 truncate block">{lastSubmission.email}</span>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <span className="text-[10px] font-mono text-slate-400 block uppercase">NEIGHBORHOOD</span>
-                              <span className="text-xs font-sans font-bold text-[#0f1f4e] truncate block">{lastSubmission.neighborhood}</span>
-                            </div>
-                            <div>
-                              <span className="text-[10px] font-mono text-slate-400 block uppercase">PROFESSION COORD</span>
-                              <span className="text-xs font-sans text-slate-600 truncate block">{lastSubmission.profession}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Mesh coordinate match check line */}
-                        <div className="mt-4 pt-3 border-t border-slate-200/50 flex items-center justify-between text-[10px] font-mono text-slate-400">
-                          <span className="flex items-center gap-1">
-                            <Compass className="w-3.5 h-3.5 text-[#2563eb]" /> Hamilton Mesh Matching Node Ready
-                          </span>
-                          <span className="text-[#0f1f4e] font-bold uppercase">SECURE SYNC v2</span>
-                        </div>
-                      </div>
-
-                      {/* ========================================================
-                          MODULE 3.2: AUTOMATED WORKFLOW ACTIONS (MOCKUP TRIGGERED DETAILED LOGS)
-                          ======================================================== */}
-                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-left space-y-3.5 max-w-md mx-auto">
-                        <span className="font-mono text-[9px] text-[#2563eb] uppercase tracking-widest font-bold block">[ Simulated Server-Side Action Loop ]</span>
-                        
-                        {/* Option 1 workflow trigger: Tech Playbook */}
-                        {((lastSubmission.desiredTracks.includes('Mentor_Track') && lastSubmission.surplusSkills.includes('Outputs_Mentoring')) || vector.level.includes("Academic")) ? (
-                          <div className="flex gap-2.5 items-start bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-xs leading-normal">
-                            <Mail className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                            <div>
-                              <strong className="text-emerald-800 text-xs block uppercase">Playbook Workflow Triggered:</strong>
-                              <p className="text-slate-600 mt-1">
-                                System matched [Mentor Track + Youth Mentoring]. Dispatched email campaign: <strong>"YVIA Tech Playbook v1.0" containing WiseBot to Smart Pi local hardware guidelines</strong> to: <span className="font-mono font-bold text-slate-800">{lastSubmission.email}</span>.
-                              </p>
-                            </div>
-                          </div>
-                        ) : null}
-
-                        {/* Option 2 workflow trigger: Co-creation invite */}
-                        {(lastSubmission.surplusSkills.includes('Outputs_Professional') || vector.level.includes("Silicon Expert")) ? (
-                          <div className="flex gap-2.5 items-start bg-fuchsia-100/60 border border-fuchsia-200/50 rounded-xl p-3 text-xs leading-normal">
-                            <Mail className="w-5 h-5 text-fuchsia-600 shrink-0 mt-0.5" />
-                            <div>
-                              <strong className="text-fuchsia-800 text-xs block uppercase">Co-Creation Workflow Triggered:</strong>
-                              <p className="text-slate-600 mt-1">
-                                System matched professional assets. Dispatched <strong>Co-creation Invitation</strong> containing secure Discord entry codes and local Alpha testing coordinates to: <span className="font-mono font-bold text-slate-800">{lastSubmission.email}</span>.
-                              </p>
-                            </div>
-                          </div>
-                        ) : null}
-
-                        {/* Standard automated Welcome mesh sync */}
-                        <div className="flex gap-2.5 items-start bg-blue-50 border border-blue-100 rounded-xl p-3 text-xs leading-normal">
-                          <Database className="w-5 h-5 text-[#2563eb] shrink-0 mt-0.5" />
-                          <div>
-                            <strong className="text-[#0f1f4e] text-xs block uppercase">Cloudflare Persistent Store:</strong>
-                            <p className="text-slate-600 mt-1">
-                              Neighborhood cluster localized. Added to Hamilton Mesh node network. Auto-synced peer group parameters.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
 
                       {/* Close button */}
                       <div className="pt-4 max-w-md mx-auto">
@@ -1548,7 +2060,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                           }}
                           className="w-full py-3 bg-[#0f1f4e] hover:bg-blue-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all"
                         >
-                          Close Card & Continue Browse
+                          Close
                         </button>
                       </div>
 
@@ -1593,19 +2105,98 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                 <div className="flex items-center gap-2">
                   <Terminal className="w-5 h-5 text-amber-300" />
                   <div>
-                    <h3 className="font-display font-medium text-sm tracking-tight text-white uppercase uppercase">YVIA Cloud Control Hub</h3>
-                    <p className="text-[10px] font-mono text-slate-300 mt-0.5">Admin Database Backdoor (Option A Preview)</p>
+                    <h3 className="font-display font-medium text-sm tracking-tight text-white uppercase">YVIA Cloud Control Hub</h3>
+                    <p className="text-[10px] font-mono text-slate-300 mt-0.5">Admin Security Verification Required</p>
                   </div>
                 </div>
 
-                <button 
-                  onClick={() => setIsAdminOpen(false)}
-                  className="p-1 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {isAdminAuthenticated && (
+                    <button 
+                      onClick={() => {
+                        setIsAdminAuthenticated(false);
+                        sessionStorage.removeItem('yvia_admin_auth');
+                      }}
+                      className="px-2 py-1 bg-rose-600/20 hover:bg-rose-600 text-rose-100 hover:text-white border border-rose-500/20 rounded text-[10px] font-mono font-bold uppercase transition-all cursor-pointer"
+                      title="Lock the console"
+                    >
+                      Lock Console
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => setIsAdminOpen(false)}
+                    className="p-1 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
+              {!isAdminAuthenticated ? (
+                /* Admin Security Lock Screen Form */
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    setAdminAuthError('');
+                    const usernameLower = adminUsername.trim().toLowerCase();
+                    if (usernameLower === 'yvia_admin_2026' && adminPassword === 'yvia_admin_2026') {
+                      setIsAdminAuthenticated(true);
+                      sessionStorage.setItem('yvia_admin_auth', 'true');
+                      setAdminUsername('');
+                      setAdminPassword('');
+                    } else {
+                      setAdminAuthError('Invalid administrator credentials.');
+                    }
+                  }} 
+                  className="p-6 flex-1 flex flex-col justify-center space-y-4 max-w-xs mx-auto w-full"
+                >
+                  <div className="text-center space-y-2">
+                    <div className="inline-flex p-3 bg-amber-500/10 text-amber-400 rounded-2xl border border-amber-500/20 mb-2">
+                      <Lock className="w-6 h-6 animate-pulse" />
+                    </div>
+                    <h4 className="font-display font-bold text-white text-md uppercase tracking-tight">Protected Area</h4>
+                    <p className="text-xs text-slate-400 font-light leading-normal">Authenticate using secure administrator credentials to enter the control hub.</p>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-mono font-bold text-slate-500 uppercase block">Admin ID (Username)</label>
+                    <input 
+                      type="text"
+                      value={adminUsername}
+                      onChange={e => setAdminUsername(e.target.value)}
+                      placeholder="e.g. #Identifier202"
+                      className="w-full bg-[#1e293b]/50 border border-slate-800 text-slate-200 placeholder-slate-600 focus:border-amber-500 hover:border-slate-700 text-xs p-3 rounded-xl transition-all outline-none font-mono"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-mono font-bold text-slate-500 uppercase block">Security Passphrase</label>
+                    <input 
+                      type="password"
+                      value={adminPassword}
+                      onChange={e => setAdminPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-[#1e293b]/50 border border-slate-800 text-slate-200 placeholder-slate-600 focus:border-amber-500 hover:border-slate-700 text-xs p-3 rounded-xl transition-all outline-none font-mono"
+                      required
+                    />
+                  </div>
+
+                  {adminAuthError && (
+                    <p className="text-xs font-mono font-bold text-rose-400 bg-rose-950/20 border border-rose-900/30 p-2.5 rounded-xl">
+                      ❌ {adminAuthError}
+                    </p>
+                  )}
+
+                  <button 
+                    type="submit"
+                    className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-[#0f172a] font-mono font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-amber-500/15 cursor-pointer mt-2"
+                  >
+                    Authenticate Security Gate
+                  </button>
+                </form>
+              ) : (
+                <>
               {/* Admin navigation tabs inside backdoor */}
               <div className="flex border-b border-slate-800 text-xs font-mono font-bold select-none">
                 <button 
@@ -1839,6 +2430,8 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
               <div className="p-4 bg-slate-950 border-t border-slate-900 text-center text-[10px] font-mono text-slate-500 font-medium">
                 Syncing Hamilton Node B (v2-OptionA-Simulator)
               </div>
+            </>
+          )}
 
             </motion.div>
           </div>

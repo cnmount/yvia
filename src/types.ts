@@ -39,6 +39,7 @@ export interface Registration {
   id: string;
   fullName: string;
   email: string;
+  password?: string;
   country: string;
   city: string;
   neighborhood: string;
