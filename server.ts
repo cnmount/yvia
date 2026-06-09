@@ -229,6 +229,17 @@ const staticEvents: EventData[] = [
 
 let db: any;
 
+function safeJsonArray(value: any, fallback: any[] = []) {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== "string") return fallback;
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 async function initializeDatabase() {
   db = await open({
     filename: DB_FILE,
@@ -250,7 +261,6 @@ async function initializeDatabase() {
       profession TEXT,
       professionalTitle TEXT,
       desiredTracks TEXT, -- JSON string array
-      surplusSkills TEXT, -- JSON string array
       submittedAt TEXT NOT NULL,
       role TEXT DEFAULT 'user',
       level TEXT DEFAULT 'Graduate Node',
@@ -339,8 +349,7 @@ async function initializeDatabase() {
         neighborhood: "Rototuna North",
         profession: "Senior Firmware Architect",
         professionalTitle: "Director of Embedded Robotics",
-        desiredTracks: JSON.stringify(["Mentor_Track", "Growth_Track"]),
-        surplusSkills: JSON.stringify(["Outputs_Professional", "Outputs_Space"]),
+        desiredTracks: JSON.stringify(["Mentor", "Growth"]),
         submittedAt: "2026-06-01T10:44:00Z",
         role: "user",
         level: "Silicon Expert Node",
@@ -356,8 +365,7 @@ async function initializeDatabase() {
         neighborhood: "Bloomsbury",
         profession: "Mathematical Computing Lecturer",
         professionalTitle: "Research Fellow, UCL Knowledge Lab",
-        desiredTracks: JSON.stringify(["Growth_Track", "Prosumer_Track"]),
-        surplusSkills: JSON.stringify(["Outputs_Mentoring", "Outputs_Professional"]),
+        desiredTracks: JSON.stringify(["Growth", "Prosumer"]),
         submittedAt: "2026-06-02T14:12:30Z",
         role: "user",
         level: "Academic Research Leader Node",
@@ -373,8 +381,7 @@ async function initializeDatabase() {
         neighborhood: "Nanshan Tech Park",
         profession: "AI Hardware Student Maker",
         professionalTitle: "Youth Lead Team Lead",
-        desiredTracks: JSON.stringify(["Mentee_Track", "Mentor_Track"]),
-        surplusSkills: JSON.stringify(["Outputs_Mentoring", "Outputs_Cross_Support"]),
+        desiredTracks: JSON.stringify(["Mentee", "Mentor"]),
         submittedAt: "2026-06-02T22:15:22Z",
         role: "user",
         level: "Junior STEM Maker Node",
@@ -384,9 +391,9 @@ async function initializeDatabase() {
 
     for (const u of sampleUsers) {
       await db.run(
-        `INSERT INTO users (id, fullName, email, password, country, city, neighborhood, profession, professionalTitle, desiredTracks, surplusSkills, submittedAt, role, level, points)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [u.id, u.fullName, u.email, u.password, u.country, u.city, u.neighborhood, u.profession, u.professionalTitle, u.desiredTracks, u.surplusSkills, u.submittedAt, u.role, u.level, u.points]
+        `INSERT INTO users (id, fullName, email, password, country, city, neighborhood, profession, professionalTitle, desiredTracks, submittedAt, role, level, points)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [u.id, u.fullName, u.email, u.password, u.country, u.city, u.neighborhood, u.profession, u.professionalTitle, u.desiredTracks, u.submittedAt, u.role, u.level, u.points]
       );
     }
   }
@@ -435,13 +442,23 @@ async function startServer() {
   await initializeDatabase();
 
   const app = express();
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    res.header("Access-Control-Allow-Origin", typeof origin === "string" ? origin : "*");
+    res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(204);
+    }
+    next();
+  });
   app.use(express.json());
 
   // API ─── USERS / GATEWAYS ───
   app.post("/api/login", async (req, res) => {
-    const { email, password } = req.body;
+    const { email = "", password = "" } = req.body || {};
     try {
-      const user = await db.get("SELECT * FROM users WHERE email = ? COLLATE NOCASE", [email.trim()]);
+      const user = await db.get("SELECT * FROM users WHERE email = ? COLLATE NOCASE", [String(email).trim()]);
       if (!user) {
         return res.status(401).json({ error: "Invalid Email Address." });
       }
@@ -452,8 +469,7 @@ async function startServer() {
       // Parse JSON fields
       const resUser = {
         ...user,
-        desiredTracks: JSON.parse(user.desiredTracks || "[]"),
-        surplusSkills: JSON.parse(user.surplusSkills || "[]"),
+        desiredTracks: safeJsonArray(user.desiredTracks),
       };
       res.json(resUser);
     } catch (e: any) {
@@ -462,102 +478,93 @@ async function startServer() {
   });
 
   app.post("/api/register", async (req, res) => {
-    const {
-      fullName,
-      email,
-      country,
-      city,
-      neighborhood,
-      profession,
-      professionalTitle,
-      desiredTracks,
-      surplusSkills
-    } = req.body;
-
-    const emailLower = email.trim().toLowerCase();
-
     try {
+      const {
+        fullName = "",
+        email = "",
+        country = "",
+        city = "",
+        neighborhood = "",
+        profession = "",
+        professionalTitle = "",
+        desiredTracks = [],
+        surplusSkills = []
+      } = req.body || {};
+
+      const emailLower = String(email || "").trim().toLowerCase();
+      if (!emailLower) {
+        return res.status(400).json({ error: "Email is required." });
+      }
+
+      const cleanFullName = String(fullName).trim();
+      if (!cleanFullName) {
+        return res.status(400).json({ error: "Full name is required." });
+      }
+
       // Check duplicate
       const existing = await db.get("SELECT id FROM users WHERE email = ?", [emailLower]);
       if (existing) {
         return res.status(409).json({ error: "Email already registered in system." });
       }
 
+      const cleanCountry = String(country).trim();
+      const cleanCity = String(city).trim();
+      const cleanNeighborhood = String(neighborhood).trim();
+      const cleanProfession = String(profession).trim();
+      const cleanProfessionalTitle = String(professionalTitle).trim() || "STEM Participant";
+
+      const cleanDesiredTracks = Array.isArray(desiredTracks) ? desiredTracks : [];
+
       const id = "cf-" + Date.now();
-      const defaultPassword = emailLower.split('@')[0];
+      const defaultPassword = emailLower.split('@')[0] || "password123";
       const submittedAt = new Date().toISOString();
 
       // Simple rating/classification of Node Level
       let level = "Graduate Node Member";
-      if (surplusSkills.includes("Outputs_Professional") || surplusSkills.includes("Outputs_Space")) {
-        level = "Silicon Expert Node";
-      } else if (surplusSkills.includes("Outputs_Mentoring")) {
-        level = "Academic Research Leader Node";
-      } else if (desiredTracks.includes("Mentee_Track")) {
-        level = "Junior STEM Maker Node";
-      }
 
       await db.run(
-        `INSERT INTO users (id, fullName, email, password, country, city, neighborhood, profession, professionalTitle, desiredTracks, surplusSkills, submittedAt, role, level, points)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'user', ?, 15)`,
+        `INSERT INTO users (id, fullName, email, password, country, city, neighborhood, profession, professionalTitle, desiredTracks, submittedAt, role, level, points)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
-          fullName.trim(),
+          cleanFullName,
           emailLower,
           defaultPassword,
-          country.trim(),
-          city.trim(),
-          neighborhood.trim(),
-          profession.trim(),
-          professionalTitle.trim(),
-          JSON.stringify(desiredTracks),
-          JSON.stringify(surplusSkills),
+          cleanCountry,
+          cleanCity,
+          cleanNeighborhood,
+          cleanProfession,
+          cleanProfessionalTitle,
+          JSON.stringify(cleanDesiredTracks),
           submittedAt,
-          level
+          "user",
+          level,
+          15
         ]
       );
-
-      // Trigger user registration email - REQ 4
-      const mailContent = `
-Hello ${fullName}! 
-
-Welcome to the YVIA Decentralized Cooperative STEM Grid Network (YVIA HUB 2.0). 
-Your nodes have successfully joined our matching mesh coordinate.
-
-Here are your initial ingress credentials:
-• Identifier/Username: ${emailLower}
-• Default Security Passphrase: ${defaultPassword}
-
-⚠️ ACTION REQUIRED: To protect your network credentials from unauthorized tampering, please log in to your YVIA Hub profile portal (https://ai.studio/build), open the "Profile & Security settings" panel, and IMMEDIATELY modify your default passphrase.
-
-Ecosystem Assignment:
-• Calculated Role Level: ${level}
-• Base Grid Power: 15 Gp
-
-We are incredibly excited to bring high-tier hardware integration to your neighborhood.
-
-Best wishes,
-YVIA Core Infrastructure Automation Agent
-      `.trim();
-
-      await queueEmail(emailLower, "Welcome to YVIA Grid! [Credentials Security Notice]", mailContent);
 
       const registeredUser = await db.get("SELECT * FROM users WHERE id = ?", [id]);
       const responseUser = {
         ...registeredUser,
-        desiredTracks: JSON.parse(registeredUser.desiredTracks || "[]"),
-        surplusSkills: JSON.parse(registeredUser.surplusSkills || "[]"),
+        desiredTracks: safeJsonArray(registeredUser?.desiredTracks),
       };
 
+      await queueEmail(
+        emailLower,
+        "Welcome to YVIA Grid! [Credentials Security Notice]",
+        `Hello ${cleanFullName}! Your account has been created. Username: ${emailLower}, Default passphrase: ${defaultPassword}`.trim()
+      );
       res.status(201).json(responseUser);
     } catch (e: any) {
+      console.error("Crash in custom registration endpoint:", e);
       res.status(500).json({ error: e.message });
     }
   });
 
   app.post("/api/user/update", async (req, res) => {
-    const { id, fullName, neighborhood, profession, professionalTitle, password } = req.body;
     try {
+      const { id, fullName = "", neighborhood = "", profession = "", professionalTitle = "", password = "" } = req.body || {};
+      
       const user = await db.get("SELECT * FROM users WHERE id = ?", [id]);
       if (!user) {
         return res.status(404).json({ error: "User profile not found." });
@@ -568,11 +575,11 @@ YVIA Core Infrastructure Automation Agent
          SET fullName = ?, neighborhood = ?, profession = ?, professionalTitle = ?, password = ?
          WHERE id = ?`,
         [
-          fullName.trim(),
-          neighborhood.trim(),
-          profession.trim(),
-          professionalTitle.trim(),
-          password.trim(),
+          String(fullName).trim(),
+          String(neighborhood).trim(),
+          String(profession).trim(),
+          String(professionalTitle).trim(),
+          String(password).trim(),
           id
         ]
       );
@@ -581,8 +588,7 @@ YVIA Core Infrastructure Automation Agent
       const updatedUser = await db.get("SELECT * FROM users WHERE id = ?", [id]);
       const resUser = {
         ...updatedUser,
-        desiredTracks: JSON.parse(updatedUser.desiredTracks || "[]"),
-        surplusSkills: JSON.parse(updatedUser.surplusSkills || "[]"),
+        desiredTracks: safeJsonArray(updatedUser?.desiredTracks),
       };
       res.json(resUser);
     } catch (e: any) {
@@ -596,8 +602,7 @@ YVIA Core Infrastructure Automation Agent
       const users = await db.all("SELECT * FROM users ORDER BY submittedAt DESC");
       const parsedUsers = users.map(u => ({
         ...u,
-        desiredTracks: JSON.parse(u.desiredTracks || "[]"),
-        surplusSkills: JSON.parse(u.surplusSkills || "[]"),
+        desiredTracks: safeJsonArray(u?.desiredTracks),
       }));
       res.json(parsedUsers);
     } catch (e: any) {
@@ -612,8 +617,8 @@ YVIA Core Infrastructure Automation Agent
       const courses = await db.all("SELECT * FROM courses");
       const parsed = courses.map(c => ({
         ...c,
-        keyConcepts: JSON.parse(c.keyConcepts || "[]"),
-        images: JSON.parse(c.images || "[]"),
+        keyConcepts: safeJsonArray(c.keyConcepts),
+        images: safeJsonArray(c.images),
         approved: c.approved === 1
       }));
       res.json(parsed);
@@ -646,7 +651,7 @@ YVIA Core Infrastructure Automation Agent
       const events = await db.all(query);
       const parsed = events.map(e => ({
         ...e,
-        images: JSON.parse(e.images || "[]"),
+        images: safeJsonArray(e.images),
         approved: e.approved === 1,
         attendeeCount: e.attendeeCount || 0
       }));
@@ -679,9 +684,9 @@ YVIA Core Infrastructure Automation Agent
       // Check registrations count as condition
       const regCount = await db.get("SELECT COUNT(*) as count FROM event_registrations WHERE userId = ?", [creatorId]);
       const meetsCondition = 
-        user.level.includes("Silicon") || 
-        user.level.includes("Academic") || 
-        user.level.includes("Systems") ||
+        (user.level && user.level.includes("Silicon")) || 
+        (user.level && user.level.includes("Academic")) || 
+        (user.level && user.level.includes("Systems")) ||
         (regCount && regCount.count >= 1);
 
       if (!meetsCondition) {
@@ -888,7 +893,7 @@ YVIA Core Infrastructure Automation Agent
           description: item.description,
           descriptionZh: item.descriptionZh,
           targetAudience: item.targetAudience,
-          images: JSON.stringify(item.images), // stringified so component can handle consistently if parsed
+          images: safeJsonArray(item.images), // stringified so component can handle consistently if parsed
           approved: item.approved === 1,
           submissionStatus: item.submissionStatus
         }

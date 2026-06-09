@@ -35,7 +35,7 @@ echo [3/4] Copying build output from container to local...
 
 REM 假设编译输出目录是 dist，如不同请修改
 REM docker cp tsx-container:/app/dist ./dist-docker
-docker cp tsx-container:/app/dist D:\project\yvia
+docker cp tsx-container:/app/dist/. D:\project\yvia
 if errorlevel 1 (
     echo.
     echo ERROR: Failed to copy dist from container.
@@ -56,24 +56,14 @@ if errorlevel 1 (
 echo.
 echo [= Build completed successfully. Output in: dist-docker =]
 
-REM 提示用户输入 commit message
+set "GIT=E:\Program Files\Git\cmd\git.exe"
+if not exist "%GIT%" set "GIT=E:\Program Files\Git\cmd\git.exe"
+
+echo ===== Git 提交 =====
 set /p commitMsg=请输入 commit message:
-echo
-
-REM 执行 git add .
-echo 正在添加变更...
-git add .
-echo
-
-REM 执行 git commit -m 用户输入的 message
-echo 正在提交...
-git commit -m "%commitMsg%"
-echo
-
-REM 执行 git push
-echo 正在推送到远程...
-git push
-echo
+"%GIT%" add .
+"%GIT%" commit -m "%commitMsg%"
+"%GIT%" push
 
 echo ================================
 echo 提交成功！Message: %commitMsg%

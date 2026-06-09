@@ -67,9 +67,9 @@ export const translations = {
     // Section 5: Who Can Join
     rolesTitle: 'Who Can Join',
     rolesSubtitle: 'Find your custom role inside our community mesh network',
-    rolesMenteeTitle: 'Mentees (Ages 8–12)',
+    rolesMenteeTitle: 'Mentees',
     rolesMenteeDesc: 'Learn robotics and coding basics through hands-on projects in fun, teen-guided groups.',
-    rolesMentorTitle: 'Mentors (Ages 13–18)',
+    rolesMentorTitle: 'Mentors',
     rolesMentorDesc: 'Receive technical instruction from industry veterans, lead weekly sessions, and build real leadership credentials.',
     rolesExpertTitle: 'Experts & Advisors',
     rolesExpertDesc: 'Share your professional expertise, train teenagers, and validate community open-source hardware nodes.',
@@ -78,10 +78,10 @@ export const translations = {
 
     // Section 6: Action Panel / CTAs
     ctaTitle: 'Ready to launch or join a learning group near you?',
-    ctaMainBtn: 'Explore Participation Paths',
-    ctaMentorBtn: 'Join as a Mentor (Ages 13-18)',
-    ctaMenteeBtn: 'Join as a Mentee (Ages 8-12)',
-    ctaExpertBtn: 'Join as an Expert/Advisor (IT & Academics)',
+    ctaMainBtn: 'Explore the Community',
+    ctaMentorBtn: 'Join as a Mentor',
+    ctaMenteeBtn: 'Join as a Mentee',
+    ctaExpertBtn: 'Join as an Expert/Advisor',
     ctaPodBtn: 'Bring YVIA to your local school or library',
     ctaContactBtn: 'Start a Learning Pod',
 
@@ -159,9 +159,9 @@ export const translations = {
     // Section 5: Who Can Join
     rolesTitle: '谁可以加入我们',
     rolesSubtitle: '任何角色都能在我们的互助网格里找到快乐、奉献技术',
-    rolesMenteeTitle: '小班学员 (适合 8–12 岁)',
+    rolesMenteeTitle: '小班学员',
     rolesMenteeDesc: '在大哥哥姐姐的倾心带领下，体验有趣的科学探究、少儿编程以及算法硬件组装。',
-    rolesMentorTitle: '青年导师 (适合 13–18 岁)',
+    rolesMentorTitle: '青年导师',
     rolesMentorDesc: '接受顶尖工程师与科学家专业指导，备课并主持每周趣味集会，锤炼杰出的项目领导力。',
     rolesExpertTitle: '行业顾问与技术专家',
     rolesExpertDesc: '提供硬核辅导，帮助培训青少年导师，并为社区开源共享的探索教具质量把关。',
@@ -169,10 +169,10 @@ export const translations = {
     rolesParentDesc: '共享图书馆房间或客厅场地，支持线下学习小组（POD）运转，积攒积分兑换教材。',
 
     // Section 6: Action Panel / CTAs
-    ctaTitle: '准备在您所在的社区发起或报名一个共济小组吗？',
-    ctaMainBtn: '选择角色，加入邻里科技网格',
-    ctaMentorBtn: '申请成为青年导师 (13–18 岁)',
-    ctaMenteeBtn: '申请加入学员班 (8–12 岁)',
+    ctaTitle: '准备在您所在的社区发起或报名一个共学小组吗？',
+    ctaMainBtn: '加入邻里科技网格',
+    ctaMentorBtn: '申请成为青年导师',
+    ctaMenteeBtn: '申请加入学员班',
     ctaExpertBtn: '入驻成为专家顾问/技术导师',
     ctaPodBtn: '将 YVIA 引进您所在的学校或社区图书馆',
     ctaContactBtn: '发起筹备社区微节点 (Learning Pod)',

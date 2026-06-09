@@ -40,10 +40,7 @@ import { Course, EventItem, Registration } from './types';
 import { translations } from './locale';
 import AboutUsPage from './components/MapComponent';
 import CourseCard from './components/CourseCard';
-
-
 import EventCard from './components/EventCard';
-
 
 export default function App() {
   // Main Site Core States for Dynamic Sim connected directly to Node.js SQL Backend
@@ -59,7 +56,7 @@ export default function App() {
   const [adminEmails, setAdminEmails] = useState<any[]>([]);
   const [currentUserRegistrations, setCurrentUserRegistrations] = useState<any[]>([]);
   const [toastMessage, setToastMessage] = useState('');
-  const [lang, setLang] = useState<'en' | 'zh'>('zh'); // Default to Chinese for a user friendly introductory experience, can toggle anytime!
+  const [lang, setLang] = useState<'en' | 'zh'>('en'); // Default to English for a user friendly introductory experience, can toggle anytime!
   const t = translations[lang];
 
   // Dual-pane tabs for user portal
@@ -78,46 +75,212 @@ export default function App() {
   const [eventFormError, setEventFormError] = useState('');
   const [eventFormSuccess, setEventFormSuccess] = useState('');
 
+  const apiBaseUrl = ((import.meta as any).env?.VITE_API_BASE_URL || '').replace(/\/$/, '');
+  const localApiFallbackUrl = 'http://localhost:3000';
+  const apiUrls = (url: string) => {
+    if (/^https?:\/\//i.test(url)) return [url];
+    const normalizedPath = url.startsWith('/') ? url : `/${url}`;
+    const candidates = [
+      apiBaseUrl ? `${apiBaseUrl}${normalizedPath}` : normalizedPath,
+    ];
+
+    if (
+      typeof window !== 'undefined' &&
+      ['localhost', '127.0.0.1'].includes(window.location.hostname) &&
+      window.location.port !== '3000'
+    ) {
+      candidates.push(`${localApiFallbackUrl}${normalizedPath}`);
+    }
+
+    return [...new Set(candidates)];
+  };
+
+  function normalizeArray(value: any) {
+    if (Array.isArray(value)) return value;
+    if (typeof value !== 'string') return [];
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function normalizeUser(u: any) {
+    if (!u) return u;
+    return {
+      ...u,
+      desiredTracks: normalizeArray(u.desiredTracks),
+    };
+  }
+
+  // Integrated Network & SQLite Sync Diagnostic States
+  const [dataSyncError, setDataSyncError] = useState<{
+    message: string;
+    endpoint: string;
+    area: string;
+    status?: number;
+    preview?: string;
+  } | null>(null);
+
+  // Helper for human-readable data area mapping
+  const getDataAreaName = (url: string): string => {
+    const cleanUrl = url.split("?")[0];
+    if (cleanUrl.endsWith("/api/register")) return lang === "zh" ? "用户节点注册 (YVIA Core Registry)" : "User Node Registration (YVIA Core Registry)";
+    if (cleanUrl.endsWith("/api/courses") || cleanUrl.includes("/api/courses/")) return lang === "zh" ? "课程库同步 (Course Catalog Synchronization)" : "Course Library Sync (Course Catalog Sync)";
+    if (cleanUrl.endsWith("/api/events") || cleanUrl.includes("/api/events/")) return lang === "zh" ? "社区集会活动同步 (Spatial Events Alignment)" : "Community Events Alignment (Spatial Events Offset)";
+    if (cleanUrl.endsWith("/api/submissions")) return lang === "zh" ? "注册节点总览 (Registry Submission Ledger)" : "Global Member Submissions Ledger (Registry Outer)";
+    if (cleanUrl.endsWith("/api/emails")) return lang === "zh" ? "安全外部信道 (Email System Channel)" : "Email Event Notification channels (Secure Outbound)";
+    if (cleanUrl.includes("/api/user/registrations")) return lang === "zh" ? "个人出席资质校验 (Attendance Log Verification)" : "Personal Attendance Certification Grid";
+    if (cleanUrl.endsWith("/api/login")) return lang === "zh" ? "网格凭信核验 (Credential Ingress Verification)" : "Secure Credential Login Gateway";
+    if (cleanUrl.endsWith("/api/user/update")) return lang === "zh" ? "设置修饰同步 (Profile Attribute Modulation)" : "Profile Synchronizer Channel";
+    return lang === "zh" ? "底层数据通道 (Underlying Network Carrier)" : "Underlying Network Data Carrier";
+  };
+
+  const safeFetchJson = async (url: string, options?: RequestInit): Promise<any> => {
+    const area = getDataAreaName(url);
+    const candidates = apiUrls(url);
+    let lastError: any;
+
+    for (const requestUrl of candidates) {
+      try {
+      const res = await fetch(requestUrl, options);
+      const contentType = res.headers.get("content-type") || "";
+      
+      // Handle unsuccessful HTTP status codes gracefully
+      if (!res.ok) {
+        let bodyText = "";
+        try {
+          bodyText = await res.text();
+        } catch {}
+
+        if (contentType.includes("application/json")) {
+          try {
+            const parsed = JSON.parse(bodyText);
+            const errMsg = parsed.error || `HTTP Status Code ${res.status}`;
+            throw { message: errMsg, endpoint: url, area, status: res.status };
+          } catch {
+            throw { message: `HTTP Status Code ${res.status}`, endpoint: url, area, status: res.status, preview: bodyText.slice(0, 160) };
+          }
+        } else {
+          // Received HTML error page such as 500 error / 502 gateway error
+          const cleanPreview = bodyText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
+          throw {
+            message: `HTTP Status Code ${res.status}: Expected JSON from ${url}, but received HTML. This usually means the API request was handled by a static frontend/SPA fallback instead of the Express backend. Run the fullstack server on http://localhost:3000 or set VITE_API_BASE_URL to the backend origin.`,
+            endpoint: url,
+            area,
+            status: res.status,
+            preview: cleanPreview || "HTML Code Snippet starts with: " + bodyText.slice(0, 60),
+            retryable: true,
+          };
+        }
+      }
+
+      // Check if response is OK but still contains HTML (Vite middleware template fallback)
+      const bodyText = await res.text();
+      if (!contentType.includes("application/json") && bodyText.trim().startsWith("<")) {
+        const cleanPreview = bodyText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
+        throw {
+          message: "Single-page-app fallback intercepted the API request. Expected JSON but received the frontend HTML source page. Check that the Express backend is running, or set VITE_API_BASE_URL when deploying the frontend separately.",
+          endpoint: url,
+          area,
+          status: res.status,
+          preview: cleanPreview || "HTML Document",
+          retryable: true,
+        };
+      }
+
+      try {
+        return JSON.parse(bodyText);
+      } catch (err: any) {
+        throw {
+          message: `JSON Decoding Mismatch: ${err?.message || "Failed to parse body text"}`,
+          endpoint: url,
+          area,
+          status: res.status,
+          preview: bodyText.slice(0, 160)
+        };
+      }
+      } catch (error: any) {
+        lastError = error && error.endpoint ? error : {
+          message: error?.message || String(error),
+          endpoint: url,
+          area,
+          status: undefined,
+          preview: undefined,
+          retryable: true,
+        };
+        if (!lastError.retryable) {
+          throw lastError;
+        }
+      }
+    }
+
+    try {
+      throw lastError;
+    } catch (error: any) {
+      if (error && error.endpoint) {
+        throw error;
+      }
+      throw {
+        message: error?.message || String(error),
+        endpoint: url,
+        area,
+        status: undefined,
+        preview: undefined
+      };
+    }
+  };
+
   // Sync data dynamically on mount & whenever updates occur
   const fetchData = async () => {
     try {
-      const coursesRes = await fetch('/api/courses');
-      if (coursesRes.ok) {
-        const data = await coursesRes.json();
-        setCourses(data);
-      }
-      
-      const eventsRes = await fetch('/api/events');
-      if (eventsRes.ok) {
-        const data = await eventsRes.json();
-        setEvents(data);
-      }
+      const dataCourses = await safeFetchJson("/api/courses");
+      setCourses(dataCourses);
 
-      const subsRes = await fetch('/api/submissions');
-      if (subsRes.ok) {
-        const data = await subsRes.json();
-        setSubmissions(data);
-      }
+      const dataEvents = await safeFetchJson("/api/events");
+      setEvents(dataEvents);
 
-      const emailsRes = await fetch('/api/emails');
-      if (emailsRes.ok) {
-        const data = await emailsRes.json();
-        setAdminEmails(data);
+      const dataSubs = await safeFetchJson("/api/submissions");
+      setSubmissions(dataSubs.map((u: any) => normalizeUser(u)));
+
+      const dataEmails = await safeFetchJson("/api/emails");
+      setAdminEmails(dataEmails);
+
+      // Successfully synced everything, clear errors
+      setDataSyncError(null);
+    } catch (err: any) {
+      console.error("fetchData failed:", err);
+      if (err?.retryable) {
+        setDataSyncError(null);
+        setCaptchaError('');
+        return;
       }
-    } catch (err) {
-      console.warn("SQL Server connection missing. Reverting to sandbox state parameters.", err);
+      const structuredErr = err.endpoint ? err : {
+        message: err.message || String(err),
+        endpoint: "Multiple Dashboard Endpoints",
+        area: lang === "zh" ? "控制台网格同步" : "Dashboard Metrics Sync",
+        status: err.status
+      };
+      setDataSyncError(structuredErr);
+      setCaptchaError(`Data refresh failed: ${structuredErr.message}`);
     }
   };
 
   const fetchUserRegistrations = async (userId: string) => {
     try {
-      const res = await fetch(`/api/user/registrations?userId=${userId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setCurrentUserRegistrations(data);
-      }
-    } catch (err) {
-      console.error("Failed to load user credentials mesh registrations:", err);
+      const data = await safeFetchJson(`/api/user/registrations?userId=${encodeURIComponent(userId)}`);
+      setCurrentUserRegistrations(data);
+      setDataSyncError(null);
+    } catch (err: any) {
+      console.error("Failed to load user registrations", err);
+      const structuredErr = err.endpoint ? err : {
+        message: err.message || String(err),
+        endpoint: "/api/user/registrations",
+        area: lang === "zh" ? "个人参与网格核算" : "Personal Registered Spatial Pods",
+        status: err.status
+      };
+      setDataSyncError(structuredErr);
     }
   };
 
@@ -179,7 +342,6 @@ export default function App() {
     city: 'Hamilton'
   });
   const [portalDesires, setPortalDesires] = useState<string[]>([]);
-  const [portalSurpluses, setPortalSurpluses] = useState<string[]>([]);
   const [portalPassword, setPortalPassword] = useState('');
   const [portalSuccessMsg, setPortalSuccessMsg] = useState('');
   const [portalErrors, setPortalErrors] = useState<Record<string, string>>({});
@@ -201,22 +363,17 @@ export default function App() {
     e.preventDefault();
     setLoginError('');
     try {
-      const res = await fetch('/api/login', {
+      const found = await safeFetchJson('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loginEmail, password: loginPassword })
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        setLoginError(err.error || 'Identity authentication failed.');
-        return;
-      }
-
-      const found = await res.json();
-      localStorage.setItem('yvia_v2_current_user', JSON.stringify(found));
-      setCurrentUser(found);
+      const normalized = normalizeUser(found);
+      localStorage.setItem('yvia_v2_current_user', JSON.stringify(normalized));
+      setCurrentUser(normalized);
       setIsLoginOpen(false);
+      setDataSyncError(null);
       
       // Auto populate the portal settings and open portal
       setPortalFields({
@@ -228,7 +385,6 @@ export default function App() {
         city: found.city
       });
       setPortalDesires(found.desiredTracks || []);
-      setPortalSurpluses(found.surplusSkills || []);
       setPortalPassword(found.password);
       setPortalSuccessMsg('');
       setPortalErrors({});
@@ -239,8 +395,16 @@ export default function App() {
       
       // Load user registrations
       fetchUserRegistrations(found.id);
-    } catch (err) {
-      setLoginError('Could not establish connection with authentication gateway.');
+    } catch (err: any) {
+      console.error("Login failure:", err);
+      const structuredErr = err.endpoint ? err : {
+        message: err.message || String(err),
+        endpoint: "/api/login",
+        area: lang === "zh" ? "用户登录鉴权口" : "Secure Credential Login Gateway",
+        status: err.status
+      };
+      setDataSyncError(structuredErr);
+      setLoginError(structuredErr.message || 'Identity authentication failed.');
     }
   };
 
@@ -255,7 +419,6 @@ export default function App() {
       city: currentUser.city
     });
     setPortalDesires(currentUser.desiredTracks || []);
-    setPortalSurpluses(currentUser.surplusSkills || []);
     setPortalPassword(currentUser.password || currentUser.email.split('@')[0]);
     setPortalSuccessMsg('');
     setPortalErrors({});
@@ -291,7 +454,7 @@ export default function App() {
     if (!currentUser) return;
 
     try {
-      const res = await fetch('/api/user/update', {
+      const updatedData = await safeFetchJson('/api/user/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -302,27 +465,28 @@ export default function App() {
           professionalTitle: portalFields.professionalTitle,
           password: portalPassword,
           desiredTracks: portalDesires,
-          surplusSkills: portalSurpluses,
           country: portalFields.country,
           city: portalFields.city
         })
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        setPortalSuccessMsg('');
-        alert(err.error || "Profile update failed.");
-        return;
-      }
-
-      const updatedUser = await res.json();
+      const updatedUser = normalizeUser(updatedData);
       localStorage.setItem('yvia_v2_current_user', JSON.stringify(updatedUser));
       setCurrentUser(updatedUser);
       setPortalSuccessMsg('Profile and password updated successfully in SQLite database!');
       setToastMessage("Profile synced with Cloudflare D1.");
+      setDataSyncError(null);
       fetchData();
-    } catch (e) {
-      console.error(e);
+    } catch (err: any) {
+      console.error(err);
+      const structuredErr = err.endpoint ? err : {
+        message: err.message || String(err),
+        endpoint: "/api/user/update",
+        area: lang === "zh" ? "用户设置设置同步" : "Profile Settings Synchronizer",
+        status: err.status
+      };
+      setDataSyncError(structuredErr);
+      setPortalSuccessMsg('');
     }
   };
 
@@ -333,7 +497,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch('/api/events/register', {
+      const output = await safeFetchJson('/api/events/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -342,13 +506,6 @@ export default function App() {
         })
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        alert(err.error || "Failed to register for event node.");
-        return;
-      }
-
-      const output = await res.json();
       setToastMessage(output.message || "Enrolled successfully in grid event! Confirmation email logged.");
       
       // Reload states & registrations
@@ -372,7 +529,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch('/api/events/initiate', {
+      await safeFetchJson('/api/events/initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -386,12 +543,6 @@ export default function App() {
           creatorEmail: currentUser.email
         })
       });
-
-      if (!res.ok) {
-        const err = await res.json();
-        setEventFormError(err.error || "Failed initiating event proposal.");
-        return;
-      }
 
       setEventFormSuccess("Cooperative event proposal successfully compiled! Queued with state: pending. System mail log dispatched!");
       setToastMessage("Event proposal created! Simulated confirmation email sent.");
@@ -418,15 +569,13 @@ export default function App() {
 
   const handleToggleCourseApprove = async (id: string) => {
     try {
-      const res = await fetch(`/api/courses/toggle-approve`, {
+      await safeFetchJson('/api/courses/toggle-approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
       });
-      if (res.ok) {
-        setCourses(prev => prev.map(c => c.id === id ? { ...c, approved: !c.approved } : c));
-        setToastMessage("Course approval toggled in SQLite database.");
-      }
+      setCourses(prev => prev.map(c => c.id === id ? { ...c, approved: !c.approved } : c));
+      setToastMessage("Course approval toggled in SQLite database.");
     } catch (e) {
       console.error(e);
     }
@@ -434,15 +583,13 @@ export default function App() {
 
   const handleToggleEventApprove = async (id: string) => {
     try {
-      const res = await fetch(`/api/events/toggle-approve`, {
+      await safeFetchJson('/api/events/toggle-approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
       });
-      if (res.ok) {
-        setEvents(prev => prev.map(e => e.id === id ? { ...e, approved: !e.approved } : e));
-        setToastMessage("Event approval toggled in SQLite database.");
-      }
+      setEvents(prev => prev.map(e => e.id === id ? { ...e, approved: !e.approved } : e));
+      setToastMessage("Event approval toggled in SQLite database.");
     } catch (e) {
       console.error(e);
     }
@@ -451,7 +598,7 @@ export default function App() {
   // --- MODULE 2: Pop-up form states ---
   const [showCtaPaths, setShowCtaPaths] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formStep, setFormStep] = useState<1 | 2 | 3 | 4>(1); // Step 1: Base, Step 2: Desire (Q1), Step 3: Surplus (Q2), Step 4: Vector Card
+  const [formStep, setFormStep] = useState<1 | 2 | 3>(1); // Step 1: Base, Step 2: Track details, Step 3: Vector Card
   
   const [formFields, setFormFields] = useState({
     fullName: '',
@@ -463,7 +610,7 @@ export default function App() {
     professionalTitle: ''
   });
   const [selectedDesires, setSelectedDesires] = useState<string[]>([]);
-  const [selectedSurpluses, setSelectedSurpluses] = useState<string[]>([]);
+  const [selectedSurplus, setSelectedSurplus] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [lastSubmission, setLastSubmission] = useState<Registration | null>(null);
 
@@ -478,20 +625,28 @@ export default function App() {
 
   const desiresOptions = [
     {
-      flag: "Mentee_Track",
-      text: "Advanced STEM programming, Python, physical computing kits, hands-on hardware control."
+      flag: "Mentor",
+      text: lang === 'zh' 
+        ? "青年导师 Target Mentor - 接受顶级工程专家培训指导，带领弟弟妹妹快乐自主拆拆装装" 
+        : "Join as a Mentor - Coached directly by industry partners, lead local youth computing groups"
     },
     {
-      flag: "Mentor_Track",
-      text: "Step up, inspire other kids, learn peer mentoring, public speaking, team management."
+      flag: "Mentee",
+      text: lang === 'zh' 
+        ? "学员 Target Mentee  - 在导师或行业专家倾心带领下，体验有趣的科学探究、少儿编程与智能系统闭环" 
+        : "Join as a Mentee - Build robotics, coordinate logic paths and hands-on algorithms under friendly peer guides"
     },
     {
-      flag: "Growth_Track",
-      text: "Connect 1-on-1 with global tech leaders with 15+ years architecture experience."
+      flag: "Expert",
+      text: lang === 'zh' 
+        ? "行业顾问与技术专家 Expert / Advisor - 携手学者与名企大咖，共同开辟前沿开源探索套件，守护中学生备课 review" 
+        : "Join as an Expert/Advisor (IT & Academics) - Share industry insights, train high-school mentors, validate kit specifications"
     },
     {
-      flag: "Prosumer_Track",
-      text: "Provide elite STEM curriculum, micro-kits and physical playground resources for my child."
+      flag: "Pod",
+      text: lang === 'zh' 
+        ? "社区微节点 / 筹办人 Learning POD - 协助提供公共图书室、居委客厅或校舍场地，贡献家庭微循环力量" 
+        : "Start a Learning Pod / Host Venue - Facilitate spatial setup in local libraries or living rooms, assist physical material flow"
     }
   ];
 
@@ -520,11 +675,12 @@ export default function App() {
     );
   };
 
-  const handleToggleSurpluses = (flag: string) => {
-    setSelectedSurpluses(prev => 
+  const handleToggleSurplus = (flag: string) => {
+    setSelectedSurplus(prev => 
       prev.includes(flag) ? prev.filter(f => f !== flag) : [...prev, flag]
     );
   };
+
 
   // Auto-fill test mock registration for quick grading
   const handleSimulateQuickFill = () => {
@@ -537,8 +693,8 @@ export default function App() {
       profession: "Mechatronics Research Fellow",
       professionalTitle: "Lead Systems Engineer"
     });
-    setSelectedDesires(["Mentor_Track", "Growth_Track"]);
-    setSelectedSurpluses(["Outputs_Professional", "Outputs_Space"]);
+    setSelectedDesires(["Mentor", "Growth"]);
+    setSelectedSurplus(["Outputs_Mentoring"]);
     setFormStep(1);
     setErrors({});
   };
@@ -580,7 +736,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch('/api/register', {
+      const registrationData = await safeFetchJson('/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -593,33 +749,35 @@ export default function App() {
           neighborhood: formFields.neighborhood,
           profession: formFields.profession,
           professionalTitle: formFields.professionalTitle || "STEM Participant",
-          desiredTracks: selectedDesires,
-          surplusSkills: selectedSurpluses
+          desiredTracks: selectedDesires
         })
       });
 
-      if (!res.ok) {
-        const errData = await res.json();
-        setCaptchaError(errData.error || "Dynamic mesh registration failed.");
-        return;
-      }
-
-      const registration = await res.json();
+      const registration = normalizeUser(registrationData);
       setLastSubmission(registration);
       
       // Auto-login the user
       localStorage.setItem('yvia_v2_current_user', JSON.stringify(registration));
       setCurrentUser(registration);
 
-      // Reset captcha
+      // Reset captcha and error states
       setUserCaptchaInput('');
       setCaptchaError('');
+      setDataSyncError(null); // Clear any active database sync errors
       setCaptchaChallenge(generateCaptcha());
       setToastMessage(`Welcome to YVIA ${registration.fullName}! Default credentials dispatched to your mail outbox.`);
-      setFormStep(4); // Move straight to dynamic card presentation (Module 3)
+      setFormStep(3); // Move straight to dynamic card presentation (Module 3)
       fetchData();
-    } catch (err) {
-      setCaptchaError("Connection failure with dynamic SQL database mesh.");
+    } catch (err: any) {
+      console.error("Connection failure with dynamic SQL database mesh:", err);
+      const structuredErr = err.endpoint ? err : {
+        message: err.message || String(err),
+        endpoint: "/api/register",
+        area: lang === "zh" ? "用户数字网格注册" : "User Member Registration Gateway",
+        status: err.status
+      };
+      setDataSyncError(structuredErr);
+      setCaptchaError(`Registration Sync failed: ${structuredErr.message}`);
     }
   };
 
@@ -643,12 +801,12 @@ export default function App() {
   const computeVectorIdentity = (reg: Registration) => {
     if (!reg) return { level: "L1 Academic Scholar", sub: "Algorithm Explorer", color: "from-blue-600 to-indigo-600", tag: "Junior Node" };
     
-    const isMentor = reg.desiredTracks.includes("Mentor_Track");
-    const isProfessional = reg.surplusSkills.includes("Outputs_Professional");
-    const isSpaces = reg.surplusSkills.includes("Outputs_Space");
-    const isMentoringWork = reg.surplusSkills.includes("Outputs_Mentoring");
+    const isMentor = reg.desiredTracks.includes("Mentor");
+    //const isProfessional = reg.surplusSkills.includes("Outputs_Professional");
+    //const isSpaces = reg.surplusSkills.includes("Outputs_Space");
+    //const isMentoringWork = reg.surplusSkills.includes("Outputs_Mentoring");
 
-    if (isProfessional && reg.professionalTitle) {
+    /*if (isProfessional && reg.professionalTitle) {
       return {
         level: "L4 Silicon Expert Mentor",
         sub: `Adviser: "${reg.professionalTitle}"`,
@@ -675,7 +833,7 @@ export default function App() {
         playbook: true,
         coCreation: true
       };
-    } else {
+    } else {*/
       return {
         level: "L1 Academic STEM Scholar",
         sub: "Interactive Systems Maker",
@@ -684,7 +842,7 @@ export default function App() {
         playbook: true,
         coCreation: false
       };
-    }
+    //}
   };
 
   // Pre-configured wrangler.toml representation for Cloudflare Hub
@@ -715,7 +873,6 @@ CREATE TABLE IF NOT EXISTS registrations (
   profession TEXT,
   professionalTitle TEXT,
   desiredTracks TEXT, -- JSON array of flags
-  surplusSkills TEXT, -- JSON array of flags
   submittedAt TEXT NOT NULL
 );
 
@@ -761,7 +918,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
               onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
               className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl font-sans font-extrabold text-[9px] text-slate-500 hover:text-blue-600 active:bg-blue-50 cursor-pointer"
             >
-              {lang === 'en' ? '中文' : 'EN'}
+              {lang === 'en' ? '中文1' : 'ENG'}
             </button>
 
             {currentUser ? (
@@ -869,11 +1026,72 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
               onClick={handleOpenRegistration}
               className="px-5 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white rounded-xl font-bold text-xs tracking-wider shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35 hover:-translate-y-0.5 transition-all outline-none cursor-pointer"
             >
-              {lang === 'zh' ? '申请入驻' : 'JOIN GRID'}
+              {lang === 'zh' ? '申请加入' : 'JOIN GRID'}
             </button>
           )}
         </div>
       </nav>
+
+      {/* Dynamic Network / Database Mesh Sync Diagnostics Warning HUD */}
+      {dataSyncError && (
+        <div id="mesh-connectivity-diagnostics-card" className="bg-rose-50 border-y border-rose-200 text-rose-950 px-4 py-4 md:px-12 flex flex-col gap-4 animate-fade-in relative z-50">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 bg-rose-600 text-white rounded-lg shrink-0 flex items-center justify-center font-mono font-bold text-xs shadow-md shadow-rose-600/10">
+                {dataSyncError.status || "ERR"}
+              </div>
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] font-mono font-bold bg-rose-250 text-rose-800 px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-rose-350/30">
+                    {dataSyncError.area}
+                  </span>
+                  <span className="text-[9.5px] font-mono bg-slate-200/60 text-slate-600 px-2 py-0.5 rounded-md font-bold select-all leading-none border border-slate-350/20">
+                    {dataSyncError.endpoint}
+                  </span>
+                </div>
+                <h4 className="text-sm font-sans font-bold leading-normal text-rose-950">
+                  {lang === 'zh' ? 'SQLite 数据库连接与同步校验异常' : 'SQLite Database Mesh Link Verification Anomaly'}
+                </h4>
+                <p className="text-xs font-sans text-rose-900 leading-relaxed font-normal">
+                  {dataSyncError.message}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2.5 shrink-0 self-end md:self-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setDataSyncError(null);
+                  setCaptchaError('');
+                }}
+                className="px-3.5 py-1.5 bg-rose-200 hover:bg-rose-300 text-rose-950 font-sans font-bold text-[11px] rounded-lg transition-colors cursor-pointer uppercase tracking-wider"
+              >
+                {lang === 'zh' ? '忽略提示' : 'Dismiss'}
+              </button>
+              <button
+                type="button"
+                className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-sans font-bold text-[11px] rounded-lg transition-colors cursor-pointer uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-rose-600/10"
+                onClick={() => {
+                  fetchData();
+                }}
+              >
+                {lang === 'zh' ? '触发二次安全同步' : 'Retry Safe Sync'}
+              </button>
+            </div>
+          </div>
+          
+          {dataSyncError.preview && (
+            <div className="bg-slate-900 text-[#38bdf8] border border-slate-800 p-3.5 rounded-xl font-mono text-[11px] leading-relaxed overflow-x-auto selection:bg-[#38bdf8] selection:text-slate-900 shadow-inner">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2 text-slate-400 font-bold uppercase text-[9px] tracking-widest leading-none">
+                <span>📟 RAW SYSTEM ERROR LOG ENTRY</span>
+                <span className="text-rose-400">STATUS: INTERRUPT</span>
+              </div>
+              <pre className="whitespace-pre-wrap font-mono font-medium max-h-40 overflow-y-auto scoller-thin">{dataSyncError.preview}</pre>
+            </div>
+          )}
+        </div>
+      )}
 
       <main className="flex-1">
         {currentTab === 'home' && (
@@ -1301,68 +1519,17 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                 </h2>
               </div>
 
-              {/* Single main button toggling 4 explicit choices as requested */}
-              {!showCtaPaths ? (
-                <div className="max-w-md mx-auto pt-4">
-                  <button
-                    onClick={() => setShowCtaPaths(true)}
-                    className="w-full px-8 py-5 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg hover:shadow-blue-500/20 cursor-pointer text-center flex items-center justify-center gap-3 border border-blue-400/25 transform hover:-translate-y-0.5 active:translate-y-0 duration-200"
-                  >
-                    <Globe className="w-5 h-5 animate-pulse" />
-                    <span>{t.ctaMainBtn}</span>
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-6 pt-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
-                    {/* Option 1: Mentor */}
-                    <button
-                      onClick={handleOpenRegistration}
-                      className="px-5 py-4 bg-[#2563eb] hover:bg-blue-600 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-blue-500/10 cursor-pointer text-center flex items-center justify-center gap-2 border border-blue-400/20"
-                    >
-                      <Users className="w-4 h-4 text-amber-300" />
-                      <span>{t.ctaMentorBtn}</span>
-                    </button>
-
-                    {/* Option 2: Mentee */}
-                    <button
-                      onClick={handleOpenRegistration}
-                      className="px-5 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-500/10 cursor-pointer text-center flex items-center justify-center gap-2 border border-amber-400/20"
-                    >
-                      <Sparkles className="w-4 h-4 text-white" />
-                      <span>{t.ctaMenteeBtn}</span>
-                    </button>
-
-                    {/* Option 3: Expert */}
-                    <a
-                      href="mailto:cnshiyigang@gmail.com?subject=Apply to Join YVIA as an Expert Advisor"
-                      className="px-5 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-md text-center flex items-center justify-center gap-2 border border-purple-400/20"
-                    >
-                      <Award className="w-4 h-4 text-amber-300" />
-                      <span>{lang === 'zh' ? '入驻成为专家顾问/技术导师' : 'Join as an Expert/Advisor'}</span>
-                    </a>
-
-                    {/* Option 4: Learning POD */}
-                    <a
-                      href="mailto:cnshiyigang@gmail.com?subject=Start a local neighborhood learning pod"
-                      className="px-5 py-4 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer text-center flex items-center justify-center gap-2 border border-white/5"
-                    >
-                      <Cpu className="w-4 h-4 text-emerald-400" />
-                      <span>{t.ctaContactBtn}</span>
-                    </a>
-                  </div>
-
-                  <div className="flex justify-center">
-                    <button
-                      onClick={() => setShowCtaPaths(false)}
-                      className="text-xs text-slate-400 hover:text-white font-mono uppercase tracking-wider flex items-center gap-1.5 py-1 px-3 bg-white/5 rounded-full hover:bg-white/10 transition-all outline-none"
-                    >
-                      ← {lang === 'zh' ? '返回主按钮' : 'Back to main'}
-                    </button>
-                  </div>
-                </div>
-              )}
+              {/* Single main button that opens the 4-track registry dialog immediately as requested */}
+              <div className="max-w-md mx-auto pt-4">
+                <button
+                  onClick={handleOpenRegistration}
+                  className="w-full px-8 py-5 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg hover:shadow-blue-500/20 cursor-pointer text-center flex items-center justify-center gap-3 border border-blue-400/25 transform hover:-translate-y-0.5 active:translate-y-0 duration-200"
+                >
+                  <Globe className="w-5 h-5 animate-pulse" />
+                  <span>{t.ctaMainBtn}</span>
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -1735,10 +1902,6 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
               <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest text-[#93c5fd]">YVIA UK COOPERATIVE CONTEXT</p>
               <p>&copy; 2026 Youth Volunteer Innovation Academy (YVIA). All rights reserved.</p>
             </div>
-
-            <div className="flex items-center gap-4">
-              <span className="text-emerald-500 animate-pulse font-bold">• SIMULATOR LIVE</span>
-            </div>
           </div>
         </div>
       </footer>
@@ -2073,30 +2236,6 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                         })}
                       </div>
                     </div>
-
-                    <div className="space-y-1">
-                      <span className="text-[10px] font-mono font-bold text-slate-700 uppercase block">Modify Surplus Capacities</span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {surplusOptions.map((opt, i) => {
-                          const active = portalSurpluses.includes(opt.flag);
-                          return (
-                            <button
-                              type="button"
-                              key={i}
-                              onClick={() => {
-                                if (active) setPortalSurpluses(portalSurpluses.filter(s => s !== opt.flag));
-                                else setPortalSurpluses([...portalSurpluses, opt.flag]);
-                              }}
-                              className={`px-2.5 py-1 border rounded-lg text-[11px] font-medium cursor-pointer transition-colors ${
-                                active ? 'bg-emerald-600 border-emerald-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                              }`}
-                            >
-                              {opt.flag.replace('Outputs_', '').replace('_', ' ')}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
                   </div>
 
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
@@ -2251,7 +2390,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-wider text-amber-300 font-bold">
                     <Layers className="w-3.5 h-3.5" />
-                    <span>Step {formStep} of 4 • Vector Profiling Node</span>
+                    <span>Step {formStep} of 3 • Vector Profiling Node</span>
                   </div>
                   <h3 className="font-display font-semibold text-lg uppercase tracking-tight">YVIA Member Registry</h3>
                 </div>
@@ -2279,7 +2418,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
               <div className="h-1.5 w-full bg-slate-100">
                 <div 
                   className="h-full bg-gradient-to-r from-[#2563eb] to-[#3b82f6] transition-all duration-300"
-                  style={{ width: `${(formStep / 4) * 100}%` }}
+                  style={{ width: `${(formStep / 3) * 100}%` }}
                 />
               </div>
 
@@ -2430,11 +2569,13 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                 {formStep === 2 && (
                   <div className="space-y-6">
                     <div className="space-y-1">
-                      <div className="font-mono text-[10px] text-amber-600 font-bold uppercase tracking-widest block">[ Track Q1 • Desires Matrix ]</div>
+                      <div className="font-mono text-[10px] text-amber-600 font-bold uppercase tracking-widest block">[ Track Q1 • Participation Matrix ]</div>
                       <h4 className="font-display font-semibold text-[#0f1f4e] text-lg uppercase leading-tight">
-                        What do you (or your child) desire most from the YVIA network?
+                        {lang === 'zh' ? "请选择您感兴趣的社区参与路径" : "Select Your Desired Participation Track(s)"}
                       </h4>
-                      <p className="text-xs text-slate-400 font-light font-sans font-semibold">Select all that apply. (Multiple choices allowed, our system computes the optimal vector match)</p>
+                      <p className="text-xs text-slate-400 font-light font-sans font-semibold">
+                        {lang === 'zh' ? "支持多选。系统将据此为您匹配并在个人中心建立相应的共建网格节点：" : "Multiple choices allowed. Our system will map your custom roles within our mutual cooperative mesh:"}
+                      </p>
                     </div>
 
                     <div className="space-y-3">
@@ -2468,56 +2609,33 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                       })}
                     </div>
 
-                    {/* Step 2 Actions */}
-                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                      <button 
-                        onClick={() => setFormStep(1)}
-                        className="px-4 py-2 border border-slate-300 text-slate-500 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-50"
-                      >
-                        Back
-                      </button>
-                      <button 
-                        onClick={() => setFormStep(3)}
-                        className="px-6 py-3 bg-[#0f1f4e] text-white hover:bg-blue-700 transition-all font-bold text-xs uppercase tracking-wider rounded-xl flex items-center gap-2"
-                      >
-                        Next <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── STEP 3: BRANCH QUESTION 2 (SURPLUS / RESOURCES) ─── */}
-                {formStep === 3 && (
-                  <div className="space-y-6">
-                    <div className="space-y-1">
-                      <div className="font-mono text-[10px] text-amber-600 font-bold uppercase tracking-widest block">[ Track Q2 • Capacity Matrix ]</div>
-                      <h4 className="font-display font-semibold text-[#0f1f4e] text-lg uppercase leading-tight">
-                        What surplus skills, resources, or passions are you willing to share with the community?
-                      </h4>
-                      <p className="text-xs text-slate-400 font-light font-semibold">Select all that apply. (Multiple choices allowed, sharing surplus/talents helps foster local mesh synergy)</p>
-                    </div>
-
                     <div className="space-y-3">
+                      <div className="space-y-1">
+                        <div className="font-mono text-[10px] text-emerald-600 font-bold uppercase tracking-widest block">[ Track Q2 - Contribution Signals ]</div>
+                        <p className="text-xs text-slate-400 font-light font-sans font-semibold">
+                          Select practical ways you can support the YVIA local learning network.
+                        </p>
+                      </div>
                       {surplusOptions.map((opt, i) => {
-                        const active = selectedSurpluses.includes(opt.flag);
+                        const active = selectedSurplus.includes(opt.flag);
                         return (
                           <div 
                             key={i}
-                            onClick={() => handleToggleSurpluses(opt.flag)}
+                            onClick={() => handleToggleSurplus(opt.flag)}
                             className={`p-4 border-2 rounded-2xl cursor-pointer transition-all flex items-start gap-3 select-none ${
                               active 
-                                ? 'bg-blue-50/50 border-[#2563eb] shadow-sm' 
+                                ? 'bg-emerald-50/60 border-emerald-600 shadow-sm' 
                                 : 'border-slate-200 bg-white hover:bg-slate-50'
                             }`}
                           >
                             <div className={`mt-1 w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
-                              active ? 'bg-[#2563eb] border-[#2563eb] text-white' : 'border-slate-300 bg-slate-50'
+                              active ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 bg-slate-50'
                             }`}>
                               {active && <Check className="w-3 h-3 stroke-[3]" />}
                             </div>
                             <div className="space-y-1">
                               <span className="text-xs font-mono font-bold text-slate-700 block uppercase">
-                                {opt.flag.replace('Outputs_', ' ').trim()}
+                                {opt.flag.replace('Outputs_', '').replace('_', ' ')}
                               </span>
                               <p className="text-[12.5px] font-sans text-slate-600 leading-normal font-light">
                                 {opt.text}
@@ -2564,10 +2682,10 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                       </div>
                       {captchaError && <p className="text-[11px] font-mono font-bold text-rose-500 mt-1">{captchaError}</p>}
                     </div>
-                    {/* Step 3 Actions */}
+                    {/* Step 2 Actions */}
                     <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                       <button 
-                        onClick={() => setFormStep(2)}
+                        onClick={() => setFormStep(1)}
                         className="px-4 py-2 border border-slate-300 text-slate-500 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-50"
                       >
                         Back
@@ -2576,14 +2694,14 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                         onClick={handleFinalSubmit}
                         className="px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:scale-98 transition-all font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-emerald-500/10 flex items-center gap-2"
                       >
-                        Submit Vector Registry <CheckCircle className="w-4 h-4" />
+                        Submit <CheckCircle className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* ─── STEP 4: ECOSYSTEM IDENTITY INTEGRATION & AUTOMATED WORKFLOW OVERVIEW (Module 3 Result Page) ─── */}
-                {formStep === 4 && lastSubmission && (() => {
+                {/* ─── STEP 3: ECOSYSTEM IDENTITY INTEGRATION & AUTOMATED WORKFLOW OVERVIEW (Module 3 Result Page) ─── */}
+                {formStep === 3 && lastSubmission && (() => {
                   const vector = computeVectorIdentity(lastSubmission);
                   return (
                     <div className="space-y-6 text-center py-4">
@@ -2973,7 +3091,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
 
               {/* Backdoor panel footer */}
               <div className="p-4 bg-slate-950 border-t border-slate-900 text-center text-[10px] font-mono text-slate-500 font-medium">
-                Syncing Hamilton Node B (v2-OptionA-Simulator)
+                Syncing Hamilton Node B 
               </div>
             </>
           )}
@@ -3005,7 +3123,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
       professionalTitle: ''
     });
     setSelectedDesires([]);
-    setSelectedSurpluses([]);
+    setSelectedSurplus([]);
     setErrors({});
     setLastSubmission(null);
   }
