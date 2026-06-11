@@ -748,7 +748,7 @@ export default function App() {
           city: formFields.city,
           neighborhood: formFields.neighborhood,
           profession: formFields.profession,
-          professionalTitle: formFields.professionalTitle || "STEM Participant",
+          professionalTitle: formFields.professionalTitle || "STEAM Participant",
           desiredTracks: selectedDesires
         })
       });
@@ -835,7 +835,7 @@ export default function App() {
       };
     } else {*/
       return {
-        level: "L1 Academic STEM Scholar",
+        level: "L1 Academic STEAM Scholar",
         sub: "Interactive Systems Maker",
         color: "from-sky-500 to-blue-600",
         tag: "Youth Scholar",
@@ -918,25 +918,14 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
               onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
               className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl font-sans font-extrabold text-[9px] text-slate-500 hover:text-blue-600 active:bg-blue-50 cursor-pointer"
             >
-              {lang === 'en' ? '中文1' : 'ENG'}
+              {lang === 'en' ? '中文' : 'ENG'}
             </button>
-
-            {currentUser ? (
-              <button
-                onClick={handleOpenPortal}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl transition-all font-mono font-bold text-[9px] cursor-pointer text-[#0f1f4e]"
-              >
-                <User className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Portal</span>
-              </button>
-            ) : (
-              <button
-                onClick={handleOpenRegistration}
-                className="px-2.5 py-1.5 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white rounded-xl font-bold text-[9px] tracking-wider shadow-lg shadow-blue-500/10 active:translate-y-0.5 transition-all outline-none"
-              >
-                JOIN
-              </button>
-            )}
+            <a
+              href="mailto:info@yvia.uk?subject=Message%20to%20YVIA"
+              className="px-2.5 py-1.5 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white rounded-xl font-bold text-[9px] tracking-wider shadow-lg shadow-blue-500/10 active:translate-y-0.5 transition-all outline-none"
+            >
+              Contact
+            </a>
           </div>
         </div>
 
@@ -960,7 +949,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                 : 'text-slate-500 hover:text-[#2563eb]'
             }`}
           >
-            {lang === 'zh' ? 'STEM 课程' : 'Courses'}
+            {lang === 'zh' ? 'STEAM 课程' : 'Courses'}
           </button>
           <button 
             onClick={() => setCurrentTab('events')} 
@@ -1010,25 +999,12 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
             </button>
           </div>
 
-          {currentUser ? (
-            <button
-              onClick={handleOpenPortal}
-              className="flex items-center gap-1.5 px-3.5 py-2 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all font-mono font-bold text-xs cursor-pointer text-[#0f1f4e]"
-            >
-              <User className="w-3.5 h-3.5 text-indigo-600" />
-              <span>{lang === 'zh' ? '个人中心' : 'Portal'}</span>
-              <span className="bg-indigo-50 border border-indigo-250 text-indigo-700 text-[10px] px-1.5 py-0.5 rounded-md font-bold max-w-[80px] truncate">
-                {currentUser.fullName.split(' ')[0]}
-              </span>
-            </button>
-          ) : (
-            <button
-              onClick={handleOpenRegistration}
-              className="px-5 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white rounded-xl font-bold text-xs tracking-wider shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35 hover:-translate-y-0.5 transition-all outline-none cursor-pointer"
-            >
-              {lang === 'zh' ? '申请加入' : 'JOIN GRID'}
-            </button>
-          )}
+          <a
+            href="mailto:info@yvia.uk?subject=Message%20to%20YVIA"
+            className="px-5 py-2 bg-gradient-to-r from-[#2563eb] to-[#3b82f6] text-white rounded-xl font-bold text-xs tracking-wider shadow-lg shadow-blue-500/20 hover:shadow-blue-500/35 hover:-translate-y-0.5 transition-all outline-none cursor-pointer"
+          >
+            {lang === 'zh' ? '联系我们' : 'Contact Us'}
+          </a>
         </div>
       </nav>
 
@@ -1149,14 +1125,6 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
 
               {/* Crisp High-Contrast Action Trigger Button "[ Go ]" (Module 1 Target) */}
               <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-                <button
-                  onClick={handleOpenRegistration}
-                  className="px-8 py-4 bg-gradient-to-r from-amber-500 to-[#f97316] text-white rounded-2xl font-display font-black text-lg uppercase tracking-widest hover:brightness-110 active:scale-98 transition-all shadow-lg shadow-amber-500/20 text-center cursor-pointer"
-                  id="main-cta-go-button"
-                >
-                   {t.goBtn}
-                </button>
-
                 <div className="text-xs text-blue-100/70 font-mono space-y-1 py-1">
                   <div className="flex items-center gap-1.5 text-amber-200 font-bold">
                     <Check className="w-4 h-4 text-amber-400" />
@@ -1198,7 +1166,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                   {lang === 'zh' ? '交互式算法' : 'Interactive Algorithms'}
                 </span>
                 <span className="bg-white/10 text-white rounded-md px-2.5 py-1 text-[10px] font-mono border border-white/5">
-                  {lang === 'zh' ? '系统应用实践' : 'Applied Core STEM'}
+                  {lang === 'zh' ? '系统应用实践' : 'Applied Core STEAM'}
                 </span>
               </div>
             </div>
@@ -1231,7 +1199,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
               </p>
               <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5">
                 <p className="text-xs text-blue-800 leading-relaxed italic">
-                  &ldquo;{lang === 'zh' ? '同伴引领的 STEM 学习极大地提升了参与感、建立了自信心，并在一同协作中帮助学生学得更快、走得更远。' : 'Peer-led STEM learning increases engagement, builds confidence, and helps students learn faster through real collaboration.'}&rdquo;
+                  &ldquo;{lang === 'zh' ? '同伴引领的 STEAM 学习极大地提升了参与感、建立了自信心，并在一同协作中帮助学生学得更快、走得更远。' : 'Peer-led STEAM learning increases engagement, builds confidence, and helps students learn faster through real collaboration.'}&rdquo;
                 </p>
               </div>
             </div>
@@ -1279,10 +1247,10 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
         </section>
 
         {/* Module 2: Why YVIA Matters (Painpoints & Solutions) */}
-        <section id="why-yvia-matters" className="py-16 px-6 bg-slate-50/50 border-b border-slate-100">
+        <section id="why-yvia-matters" className="py-16 px-6 border-b border-slate-100" style={{background: 'linear-gradient(135deg, #f0f4ff 0%, #fef9f0 50%, #f0fdf4 100%)'}}>
           <div className="max-w-7xl mx-auto w-full">
             <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
-              <span className="text-xs font-mono font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+              <span className="text-xs font-mono font-bold text-amber-700 uppercase tracking-widest bg-amber-100 px-3 py-1 rounded-full border border-amber-300">
                 {t.whyTitle}
               </span>
               <h2 className="font-display font-black text-3xl md:text-5xl text-[#0f1f4e] uppercase tracking-tight">
@@ -1291,24 +1259,27 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-xs hover:shadow-md transition-all">
-                <div className="w-10 h-10 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 mb-6 shrink-0 font-bold font-mono text-xs">
+              <div className="bg-white rounded-3xl p-8 border border-rose-100 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-400 to-pink-500"></div>
+                <div className="w-10 h-10 rounded-full bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-600 mb-6 shrink-0 font-bold font-mono text-xs">
                   01
                 </div>
                 <h3 className="font-display font-extrabold text-[#0f1f4e] text-base mb-2">{t.why1Title}</h3>
                 <p className="text-xs text-slate-500 leading-relaxed font-light">{t.why1Desc}</p>
               </div>
 
-              <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-xs hover:shadow-md transition-all">
-                <div className="w-10 h-10 rounded-full bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500 mb-6 shrink-0 font-bold font-mono text-xs">
+              <div className="bg-white rounded-3xl p-8 border border-amber-100 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-orange-400"></div>
+                <div className="w-10 h-10 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-600 mb-6 shrink-0 font-bold font-mono text-xs">
                   02
                 </div>
                 <h3 className="font-display font-extrabold text-[#0f1f4e] text-base mb-2">{t.why2Title}</h3>
                 <p className="text-xs text-slate-500 leading-relaxed font-light">{t.why2Desc}</p>
               </div>
 
-              <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-xs hover:shadow-md transition-all">
-                <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 mb-6 shrink-0 font-bold font-mono text-xs">
+              <div className="bg-white rounded-3xl p-8 border border-emerald-100 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-400"></div>
+                <div className="w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600 mb-6 shrink-0 font-bold font-mono text-xs">
                   03
                 </div>
                 <h3 className="font-display font-extrabold text-[#0f1f4e] text-base mb-2">{t.why3Title}</h3>
@@ -1319,9 +1290,9 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
         </section>
 
         {/* Module 3: How It Works (Progressive Steps) */}
-        <section id="how-it-works-3step" className="py-16 px-6 max-w-7xl mx-auto w-full border-b border-slate-100">
+        <section id="how-it-works-3step" className="py-16 px-6 border-b border-slate-100" style={{background: 'linear-gradient(180deg, #f8faff 0%, #eef2ff 100%)'}}>
           <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
-            <span className="text-xs font-mono font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+            <span className="text-xs font-mono font-bold text-blue-700 uppercase tracking-widest bg-blue-100 px-3 py-1 rounded-full border border-blue-300">
               {t.howTitle}
             </span>
             <h2 className="font-display font-black text-3xl md:text-5xl text-[#0f1f4e] uppercase tracking-tight">
@@ -1329,35 +1300,38 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             {/* Step 1 */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/50 shadow-xs hover:border-blue-300 transition-all group">
-              <div className="font-display font-black text-6xl text-slate-100 mb-4 transition-colors group-hover:text-blue-100">01</div>
-              <h3 className="font-display font-extrabold text-[#0f1f4e] text-base mb-2">{t.how1Title}</h3>
-              <p className="text-xs text-slate-500 leading-normal font-light">{t.how1Desc}</p>
+            <div className="bg-gradient-to-br from-[#1e3a8a] to-[#2563eb] rounded-3xl p-6 border border-blue-700/30 shadow-lg shadow-blue-500/10 group">
+              <div className="font-display font-black text-6xl text-white/20 mb-4">01</div>
+              <h3 className="font-display font-extrabold text-white text-base mb-2">{t.how1Title}</h3>
+              <p className="text-xs text-blue-100 leading-normal font-light">{t.how1Desc}</p>
+              <div className="mt-4 w-8 h-0.5 bg-amber-400 rounded-full"></div>
             </div>
 
             {/* Step 2 */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/50 shadow-xs hover:border-blue-300 transition-all group">
-              <div className="font-display font-black text-6xl text-slate-100 mb-4 transition-colors group-hover:text-amber-100">02</div>
-              <h3 className="font-display font-extrabold text-[#0f1f4e] text-base mb-2">{t.how2Title}</h3>
-              <p className="text-xs text-slate-500 leading-normal font-light">{t.how2Desc}</p>
+            <div className="bg-gradient-to-br from-[#92400e] to-[#d97706] rounded-3xl p-6 border border-amber-600/30 shadow-lg shadow-amber-500/10 group">
+              <div className="font-display font-black text-6xl text-white/20 mb-4">02</div>
+              <h3 className="font-display font-extrabold text-white text-base mb-2">{t.how2Title}</h3>
+              <p className="text-xs text-amber-100 leading-normal font-light">{t.how2Desc}</p>
+              <div className="mt-4 w-8 h-0.5 bg-white/40 rounded-full"></div>
             </div>
 
             {/* Step 3 */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200/50 shadow-xs hover:border-blue-300 transition-all group">
-              <div className="font-display font-black text-6xl text-slate-100 mb-4 transition-colors group-hover:text-emerald-100">03</div>
-              <h3 className="font-display font-extrabold text-[#0f1f4e] text-base mb-2">{t.how3Title}</h3>
-              <p className="text-xs text-slate-500 leading-normal font-light">{t.how3Desc}</p>
+            <div className="bg-gradient-to-br from-[#065f46] to-[#059669] rounded-3xl p-6 border border-emerald-600/30 shadow-lg shadow-emerald-500/10 group">
+              <div className="font-display font-black text-6xl text-white/20 mb-4">03</div>
+              <h3 className="font-display font-extrabold text-white text-base mb-2">{t.how3Title}</h3>
+              <p className="text-xs text-emerald-100 leading-normal font-light">{t.how3Desc}</p>
+              <div className="mt-4 w-8 h-0.5 bg-white/40 rounded-full"></div>
             </div>
           </div>
         </section>
 
         {/* Module 4: What Students Build (Real Projects) */}
-        <section id="what-students-build" className="py-16 px-6 bg-slate-50/50 border-b border-slate-100">
+        <section id="what-students-build" className="py-16 px-6 border-b border-slate-100" style={{background: 'linear-gradient(135deg, #fafafa 0%, #f0f9ff 60%, #fef3c7 100%)'}}>
           <div className="max-w-7xl mx-auto w-full">
             <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
-              <span className="text-xs font-mono font-bold text-amber-600 uppercase tracking-widest bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+              <span className="text-xs font-mono font-bold text-amber-700 uppercase tracking-widest bg-amber-100 px-3 py-1 rounded-full border border-amber-300">
                 {t.buildTitle}
               </span>
               <h2 className="font-display font-black text-3xl md:text-5xl text-[#0f1f4e] uppercase tracking-tight">
@@ -1367,9 +1341,9 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Project 1 */}
-              <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs flex flex-col justify-between hover:shadow-md transition-all">
+              <div className="bg-white rounded-3xl border border-blue-100 p-6 shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all">
                 <div className="space-y-4">
-                  <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-blue-600 shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-md shadow-blue-500/20">
                     <Compass className="w-6 h-6" />
                   </div>
                   <div>
@@ -1377,20 +1351,20 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                     <p className="text-xs text-slate-500 leading-relaxed font-light mt-2">{t.build1Desc}</p>
                   </div>
                 </div>
-                <div className="mt-6 flex flex-wrap gap-1.5 pt-4 border-t border-slate-100">
-                  <span className="bg-slate-100 border border-slate-200 rounded-md px-2 py-0.5 text-slate-500 text-[10px] font-mono">
+                <div className="mt-6 flex flex-wrap gap-1.5 pt-4 border-t border-blue-50">
+                  <span className="bg-blue-50 border border-blue-200 rounded-md px-2 py-0.5 text-blue-700 text-[10px] font-mono">
                     {lang === 'zh' ? '三维空间算法' : 'Spatial Navigation & Logic'}
                   </span>
-                  <span className="bg-slate-100 border border-slate-200 rounded-md px-2 py-0.5 text-slate-500 text-[10px] font-mono">
+                  <span className="bg-blue-50 border border-blue-200 rounded-md px-2 py-0.5 text-blue-700 text-[10px] font-mono">
                     {lang === 'zh' ? '数字化应用物理' : 'Applied Physics'}
                   </span>
                 </div>
               </div>
 
               {/* Project 2 */}
-              <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs flex flex-col justify-between hover:shadow-md transition-all">
+              <div className="bg-white rounded-3xl border border-amber-100 p-6 shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all">
                 <div className="space-y-4">
-                  <div className="w-12 h-12 bg-amber-50 border border-amber-100 rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-md shadow-amber-500/20">
                     <Cpu className="w-6 h-6" />
                   </div>
                   <div>
@@ -1398,20 +1372,20 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                     <p className="text-xs text-slate-500 leading-relaxed font-light mt-2">{t.build2Desc}</p>
                   </div>
                 </div>
-                <div className="mt-6 flex flex-wrap gap-1.5 pt-4 border-t border-slate-100">
-                  <span className="bg-slate-100 border border-slate-200 rounded-md px-2 py-0.5 text-slate-500 text-[10px] font-mono">
+                <div className="mt-6 flex flex-wrap gap-1.5 pt-4 border-t border-amber-50">
+                  <span className="bg-amber-50 border border-amber-200 rounded-md px-2 py-0.5 text-amber-700 text-[10px] font-mono">
                     {lang === 'zh' ? '传感器反馈闭环' : 'Sensor Feedback Loop'}
                   </span>
-                  <span className="bg-slate-100 border border-slate-200 rounded-md px-2 py-0.5 text-slate-500 text-[10px] font-mono">
+                  <span className="bg-amber-50 border border-amber-200 rounded-md px-2 py-0.5 text-amber-700 text-[10px] font-mono">
                     {lang === 'zh' ? '智能自主寻路' : 'Autonomous Avoidance'}
                   </span>
                 </div>
               </div>
 
               {/* Project 3 */}
-              <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs flex flex-col justify-between hover:shadow-md transition-all">
+              <div className="bg-white rounded-3xl border border-emerald-100 p-6 shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all">
                 <div className="space-y-4">
-                  <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-md shadow-emerald-500/20">
                     <Award className="w-6 h-6" />
                   </div>
                   <div>
@@ -1419,11 +1393,11 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                     <p className="text-xs text-slate-500 leading-relaxed font-light mt-2">{t.build3Desc}</p>
                   </div>
                 </div>
-                <div className="mt-6 flex flex-wrap gap-1.5 pt-4 border-t border-slate-100">
-                  <span className="bg-slate-100 border border-slate-200 rounded-md px-2 py-0.5 text-slate-500 text-[10px] font-mono">
+                <div className="mt-6 flex flex-wrap gap-1.5 pt-4 border-t border-emerald-50">
+                  <span className="bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5 text-emerald-700 text-[10px] font-mono">
                     {lang === 'zh' ? '微控制器物理IO' : 'Electrical Signal IO'}
                   </span>
-                  <span className="bg-slate-100 border border-slate-200 rounded-md px-2 py-0.5 text-slate-500 text-[10px] font-mono">
+                  <span className="bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5 text-emerald-700 text-[10px] font-mono">
                     {lang === 'zh' ? '实体原型拼插' : 'Tactile Prototyping'}
                   </span>
                 </div>
@@ -1515,20 +1489,20 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                   <span>{lang === 'zh' ? '携手共建 · 创新未来' : 'Immediate Neighborhood Network'}</span>
                 </div>
                 <h2 className="font-display font-black text-2xl md:text-4.5xl text-white uppercase tracking-tight leading-none">
-                  {t.ctaTitle}
+                  {lang === 'zh' ? '欢迎联系我们，了解更多关于 YVIA 的信息' : 'Interested in YVIA? Get in touch with our team'}
                 </h2>
               </div>
 
-              {/* Single main button that opens the 4-track registry dialog immediately as requested */}
+              {/* Single main button that opens email client directly */}
               <div className="max-w-md mx-auto pt-4">
-                <button
-                  onClick={handleOpenRegistration}
+                <a
+                  href="mailto:info@yvia.uk?subject=Message%20to%20YVIA"
                   className="w-full px-8 py-5 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg hover:shadow-blue-500/20 cursor-pointer text-center flex items-center justify-center gap-3 border border-blue-400/25 transform hover:-translate-y-0.5 active:translate-y-0 duration-200"
                 >
-                  <Globe className="w-5 h-5 animate-pulse" />
-                  <span>{t.ctaMainBtn}</span>
+                  <Mail className="w-5 h-5" />
+                  <span>{lang === 'zh' ? '联系YVIA' : 'Contact YVIA'}</span>
                   <ArrowRight className="w-4 h-4 ml-1" />
-                </button>
+                </a>
               </div>
             </div>
           </div>
@@ -1548,7 +1522,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
               <span>Available Syllabus Nodes</span>
             </div>
             <h2 className="font-display font-black text-3.5xl md:text-5xl text-[#0f1f4e] uppercase tracking-tight">
-              Active Peer STEM Curriculums
+              Active Peer STEAM Curriculums
             </h2>
           </div>
         </div>
@@ -1558,7 +1532,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
           {courses.filter(c => c.approved).length === 0 ? (
             <div className="col-span-full border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center bg-slate-50">
               <ShieldAlert className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-              <h3 className="font-display font-extrabold text-xl text-slate-700">No STEM Syllabus Approved for Display</h3>
+              <h3 className="font-display font-extrabold text-xl text-slate-700">No STEAM Syllabus Approved for Display</h3>
               <p className="text-sm text-slate-400 max-w-md mx-auto mt-2 leading-relaxed">
                 Admins have unapproved all items. Open the " Mesh Admin" panel at the top-right and toggle "Approved" checkmarks under the "Direct SQL Sync" subpanel to reload!
               </p>
@@ -1603,23 +1577,6 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
 
       return (
         <section className="py-10 px-4 sm:px-6 max-w-7xl mx-auto w-full space-y-12">
-          {/* Top Banner */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-slate-100 pb-6">
-            <div>
-              <span className="font-mono text-xs font-bold text-amber-500 uppercase tracking-widest block mb-1">[ On-Site Playability Testing ]</span>
-              <h3 className="font-display font-black text-3.5xl md:text-5xl text-[#0f1f4e] uppercase">Citizens of Play Events</h3>
-            </div>
-            
-            {currentUser && isEligibleToHost && (
-              <button
-                onClick={() => setIsEventFormOpen(!isEventFormOpen)}
-                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center gap-1.5 shrink-0 shadow-sm"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{isEventFormOpen ? 'Cancel Proposal Vector' : 'Initiate Event Proposal'}</span>
-              </button>
-            )}
-          </div>
 
           {/* Form to submit proposals (Eligible users) */}
           {currentUser && isEligibleToHost && isEventFormOpen && (
@@ -1725,30 +1682,6 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
             </div>
           )}
 
-          {/* Info banner for NON-eligible hosts */}
-          {(!currentUser || !isEligibleToHost) && (
-            <div className="bg-amber-50/50 border border-amber-200/70 p-5 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="space-y-1 max-w-3xl col-span-full">
-                <div className="flex items-center gap-1.5 text-amber-800 text-xs font-bold font-mono">
-                  <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>PEER hosting VECTOR LOCKED</span>
-                </div>
-                <p className="text-[11px] text-slate-600 leading-relaxed font-light">
-                  {currentUser 
-                    ? `🔒 To safeguard network security, hosting is restricted to active peer mentors. Please register and participate in at least 1 verified event first.`
-                    : "🔒 Want to host learning nodes near you? Register, join the YVIA Grid, and explore active STEM events to unlock event creation!"
-                  }
-                </p>
-              </div>
-              <button
-                onClick={currentUser ? handleOpenPortal : handleOpenRegistration}
-                className="px-4 py-2 bg-amber-600 hover:bg-amber-750 text-white rounded-xl text-[10px] font-bold tracking-wider uppercase shrink-0 transition-all cursor-pointer"
-              >
-                {currentUser ? 'Explore Portal' : 'Join Grid Now'}
-              </button>
-            </div>
-          )}
-
           {/* 1. SYSTEM-PUBLISHED EVENTS SECTION */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -1759,7 +1692,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
             <div className="grid grid-cols-1 gap-6">
               {systemEvents.length === 0 ? (
                 <div className="border border-dashed border-slate-200 text-center rounded-3xl py-12 bg-slate-50 text-xs text-slate-400 font-mono">
-                  No verified system channels loaded in Cloudflare D1 database.
+                  No verified system channels loaded.
                 </div>
               ) : (
                 systemEvents.map((evt) => (
@@ -1811,7 +1744,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                   />
                 ))}
               </div>
-            </div>
+            </div> 
           )}
         </section>
       );
@@ -1835,7 +1768,7 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
                 Our Vision
               </h3>
               <p className="text-sm md:text-base text-blue-100 leading-relaxed font-light">
-                Leveraging over 10 years of experience within global innovation ecosystems—including STEM education initiatives, international robotics leagues, and grassroots technical networks—YVIA is more than a standard curriculum provider.
+                Leveraging over 10 years of experience within global innovation ecosystems—including STEAM education initiatives, international robotics leagues, and grassroots technical networks—YVIA is more than a standard curriculum provider.
               </p>
               <p className="text-sm md:text-base text-blue-100 leading-relaxed font-light">
                 We aim to serve as a resource hub and a critical catalyst for community-driven innovation, equipping the next generation with the internal computational intuition and self-reliance to navigate an exponentially complex technology landscape.
@@ -1899,7 +1832,6 @@ CREATE INDEX IF NOT EXISTS idx_registrations_neighborhood ON registrations(count
           
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-6 border-t border-slate-900/60">
             <div className="text-center md:text-left space-y-1">
-              <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest text-[#93c5fd]">YVIA UK COOPERATIVE CONTEXT</p>
               <p>&copy; 2026 Youth Volunteer Innovation Academy (YVIA). All rights reserved.</p>
             </div>
           </div>

@@ -60,7 +60,7 @@ export const initialCourses: Course[] = [
     id: 'drone',
     name: 'Drone Robotics & Autonomous Control',
     nameZh: '高空无人机机器人与自主飞行编程',
-    source: 'YVIA Applied STEM Curriculum',
+    source: 'YVIA Applied STEAM Curriculum',
     ageGroup: 'Ages 11-15 (Intermediate & High School)',
     duration: '8-10 Weeks Course',
     keyConcepts: [
@@ -84,7 +84,7 @@ export const initialCourses: Course[] = [
     name: 'Modular Intelligent Robotics (MIR)',
     nameZh: 'MIR 模块化智能机器人设计与实体控制',
     source: 'Robotics Education Ecosystem',
-    ageGroup: 'Ages 8-13 (Junior STEM)',
+    ageGroup: 'Ages 8-13 (Junior STEAM)',
     duration: '8-12 Weeks Course',
     keyConcepts: [
       'Sensory-Motor Control Loops',
@@ -180,10 +180,10 @@ export const initialEvents: EventItem[] = [
     titleZh: 'AI 协同创新令营：在不确定中重现“游戏力”',
     status: 'past',
     location: 'Rototuna Library, Hamilton, New Zealand',
-    date: 'Held: May 2026',
+    date: 'Held: Jan 2025',
     description: 'We will guide all participants to use AI tools to transform daily life into fun, interactive experiences. Through teamwork, we nurture children\'s innovative thinking and AI application skills while enhancing interaction among participants and exploring the endless possibilities of AI and playability together. Based on Citizens of Play references.',
     descriptionZh: '此活动引导参与者利用前沿 AI 助手将日常生活情境转变为好玩的互动游戏。通过跨年龄角色扮演与协作，激发孩子在未知挑战下的创新潜能，拉近亲子及同伴间的互助支持。设计源于 Citizens of Play 行动实践框架。',
-    targetAudience: 'Youth & Family Teams (7-16 years with parents)',
+    targetAudience: 'Youth & Family Teams',
     images: [
       aicoCollaboration,
       aicoPromptDesign,
@@ -198,10 +198,10 @@ export const initialEvents: EventItem[] = [
     titleZh: '伦敦大学学院 (UCL) ScratchMaths 线下极客日',
     status: 'upcoming',
     location: 'Rototuna Library, Hamilton, New Zealand',
-    date: 'Upcoming: June 2026',
+    date: 'Upcoming: July 2026',
     description: 'Dive directly into the ScratchMaths curriculum with hands-on, interactive computer challenges. Guided by YVIA youth peer leaders, children will learn how geometric angles trace beautiful spiral art and code their very first mathematically verified coordinate-chasing arcade game.',
     descriptionZh: '亲临现场深度参与 UCL 著名的趣味数理关卡。在 YVIA 青年同伴导师的面对面协助下，儿童将理解角度定理如何勾勒出惊艳的螺旋图形，并编写人生第一个符合代数模型、可畅玩的高分追逐射击游戏。',
-    targetAudience: 'Suggested Ages 8-12 (No laptop required, YVIA provided)',
+    targetAudience: 'Suggested Ages 8-12',
     images: [
       scratchMathsLearning,
       scratchMathsPeer,

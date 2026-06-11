@@ -2,7 +2,7 @@ export const translations = {
   en: {
     // Navigation & General
     home: 'Home',
-    courses: 'STEM Courses',
+    courses: 'STEAM Courses',
     events: 'Events',
     aboutUs: 'About Us',
     portal: 'Portal',
@@ -12,9 +12,9 @@ export const translations = {
 
     // Hero Section
     heroBadge: 'YOUTH VOLUNTEER INNOVATION ACADEMY',
-    heroSubtitle: 'YVIA is an expert-backed and youth-led STEM leadership community, where local teens are trained to deliver high-quality physical computing and engineering workshops to younger students.',
+    heroSubtitle: 'YVIA is an expert-backed and youth-led STEAM leadership community, where local teens are trained to deliver high-quality physical computing and engineering workshops to younger students.',
     heroTitle: 'YVIA Hub',
-    valueProp: 'A hands-on STEM learning community where teens grow as leaders by teaching younger students real engineering skills.',
+    valueProp: 'A hands-on STEAM learning community where teens grow as leaders by teaching younger students real engineering skills.',
     bullet1: 'Interactive Applied Technology',
     bullet2: 'Trained by Experts, Led by Teens',
     bullet3: 'Open Expert-Backed Local Ecosystem',
@@ -32,16 +32,16 @@ export const translations = {
     // Section 1: What is YVIA
     whatIsYviaHeader: 'What is YVIA',
     whatIsYviaTitle: 'Expert-Backed, Teen-Led Community Ecosystem',
-    whatIsYviaDesc: 'YVIA is a hands-on STEM and leadership community where local teenagers are directly trained and mentored by senior industry professionals and academic experts. Once certified, these teens lead workshop sessions to teach younger kids real engineering. This loop builds technical proficiency and deep role-model engagement. We warmly welcome more experts, researchers, and engineers to join our advisor networks!',
+    whatIsYviaDesc: 'YVIA is a hands-on STEAM and leadership community where local teenagers are directly trained and mentored by senior industry professionals and academic experts. Once certified, these teens lead workshop sessions to teach younger kids real engineering. This loop builds technical proficiency and deep role-model engagement. We warmly welcome more experts, researchers, and engineers to join our advisor networks!',
 
     // Section 2: Why YVIA Matters (Painpoints & Solutions)
     whyTitle: 'Why YVIA Matters',
-    whySubtitle: 'Solving STEM education gaps for local families and schools',
+    whySubtitle: 'Solving STEAM education gaps for local families and schools',
     why1Title: 'Teen Mentors Trained by Experts',
     why1Desc: 'We address technical talent shortages by training local teenagers alongside global industry veterans and academic scholars.',
     why2Title: 'Families as Active Contributors',
     why2Desc: 'Parents are not bystanders. They co-run local learning groups and earn tradeable mutual credits.',
-    why3Title: 'Scalable Community-Driven STEM',
+    why3Title: 'Scalable Community-Driven STEAM',
     why3Desc: 'We run small neighborhood learning groups near you to keep fees affordable and equipment high-quality.',
 
     // Section 3: How YVIA Works (The Triple-Strategy)
@@ -86,15 +86,15 @@ export const translations = {
     ctaContactBtn: 'Start a Learning Pod',
 
     // Legacy Hero refs
-    yviaSubtitle: 'YVIA is a youth-led STEM and leadership program where teens teach younger students through real robotics, drones, and hands-on engineering projects.',
-    heroDesc: 'A hands-on STEM learning community where teens grow as leaders by teaching younger students real engineering skills.',
+    yviaSubtitle: 'YVIA is a youth-led STEAM and leadership program where teens teach younger students through real robotics, drones, and hands-on engineering projects.',
+    heroDesc: 'A hands-on STEAM learning community where teens grow as leaders by teaching younger students real engineering skills.',
     deepMatchingTitle: 'Dual-Impact System',
     deepMatchingDesc: 'Youth mentors and child mentees grow side-by-side using unified hardware standards.'
   },
   zh: {
     // Navigation & General
     home: '首页',
-    courses: '趣味 STEM 课程',
+    courses: '趣味 STEAM 课程',
     events: '社区互助活动',
     aboutUs: '关于我们',
     portal: '个人中心',
@@ -104,9 +104,9 @@ export const translations = {
 
     // Hero Section
     heroBadge: '青年志愿者创新学院 (YVIA)',
-    heroSubtitle: 'YVIA 是一项行业专家辅导、青年主导的趣味 STEM 领导力社区。在这里，中学生接受专业技能培训，带领弟弟妹妹在实践中拼插装配、探究算法、放眼未来。',
+    heroSubtitle: 'YVIA 是一项行业专家辅导、青年主导的趣味 STEAM 领导力社区。在这里，中学生接受专业技能培训，带领弟弟妹妹在实践中拼插装配、探究算法、放眼未来。',
     heroTitle: 'YVIA 智趣大本营',
-    valueProp: '一个动手实践的 STEM 学习社区：青少年通过向弟弟妹妹传授真实的工程技能，在实践中成长为优秀的青年领导者。',
+    valueProp: '一个动手实践的 STEAM 学习社区：青少年通过向弟弟妹妹传授真实的工程技能，在实践中成长为优秀的青年领导者。',
     bullet1: '触手可及的拼装与应用技术',
     bullet2: '专家悉心辅导，青年榜样带教',
     bullet3: '行业行手护航的普惠本地生态',
@@ -124,16 +124,16 @@ export const translations = {
     // Section 1: What is YVIA
     whatIsYviaHeader: '探索 YVIA 学院',
     whatIsYviaTitle: '名校与行业专家护航、青年主导的自组织网络',
-    whatIsYviaDesc: 'YVIA 是一个动手实践的 STEM 与青年领导力共创社区。我们的青年导师（Mentors）直接接受行业资深工程师、科学家和高校学者的悉心培训与认证，由此获得硬核技术与带教能力，进而引领弟弟妹妹快乐学习探究。我们热切欢迎更多行业专家作为志愿顾问加入 YVIA，携手以科技反哺社区！',
+    whatIsYviaDesc: 'YVIA 是一个动手实践的 STEAM 与青年领导力共创社区。我们的青年导师（Mentors）直接接受行业资深工程师、科学家和高校学者的悉心培训与认证，由此获得硬核技术与带教能力，进而引领弟弟妹妹快乐学习探究。我们热切欢迎更多行业专家作为志愿顾问加入 YVIA，携手以科技反哺社区！',
 
     // Section 2: Why YVIA Matters (Painpoints & Solutions)
     whyTitle: '为什么选择 YVIA',
-    whySubtitle: '精准破解当下 STEM 教育缺失实体硬件与高昂费用的痛点',
+    whySubtitle: '精准破解当下 STEAM 教育缺失实体硬件与高昂费用的痛点',
     why1Title: '青年导师受专家悉心培训',
     why1Desc: '我们通过行业资深技术专家与名校顾问直接辅导中学生，从源头确保知识质量并破解带教老师匮乏的难题。',
     why2Title: '转化学区家长为能量合伙人',
     why2Desc: '家长不再仅仅是接送员。我们允许热心父母分担助教职责或共享授课客厅，获得公益积分积分。',
-    why3Title: '普惠且可持续的社区 STEM',
+    why3Title: '普惠且可持续的社区 STEAM',
     why3Desc: '直接将教学落脚在邻近图书馆或客厅。消除昂贵的加盟溢价，保障最先进拼装套件的亲民与普惠。',
 
     // Section 3: How YVIA Works
@@ -178,8 +178,8 @@ export const translations = {
     ctaContactBtn: '发起筹备社区微节点 (Learning Pod)',
 
     // Legacy Hero refs
-    yviaSubtitle: 'YVIA 是一项青年主导的 STEM 与领导力培养项目。在这里，青少年（Teens）主导教学，通过真实的机器人、无人机与动手拆装项目带领弟弟妹妹快乐学编程。',
-    heroDesc: '一个动手实践的 STEM 学习社区：青少年通过向弟弟妹妹传授真实的工程技能，在实践中成长为优秀的青年领导者。',
+    yviaSubtitle: 'YVIA 是一项青年主导的 STEAM 与领导力培养项目。在这里，青少年（Teens）主导教学，通过真实的机器人、无人机与动手拆装项目带领弟弟妹妹快乐学编程。',
+    heroDesc: '一个动手实践的 STEAM 学习社区：青少年通过向弟弟妹妹传授真实的工程技能，在实践中成长为优秀的青年领导者。',
     deepMatchingTitle: '双向能量对齐',
     deepMatchingDesc: '大孩子以教促学，弟弟妹妹深受激励，用相同的物理教具共同精进。'
   }

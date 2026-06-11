@@ -51,6 +51,15 @@ export default function EventCard(props: EventCardProps) {
   const displayTitle = lang === 'zh' && evt.titleZh ? evt.titleZh : evt.title;
   const displayDescription = lang === 'zh' && evt.descriptionZh ? evt.descriptionZh : evt.description;
 
+  const len = displayTitle.length-20;
+
+  // 在 [20, 30] 之间随机，但长度越大，越偏向大值
+  const min = 20;
+  const max = 30;
+  const ratio = Math.min(len / 20, 1); // 让 ratio 在 0~1 之间
+  const base = Math.floor(min + (max - min) * ratio);
+  const randomValue = base + Math.floor(Math.random() * (max - base + 1));
+
   return (
     <div className="bg-white border border-blue-100 rounded-3xl p-6 md:p-8 grid grid-cols-1 md:grid-cols-12 gap-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
       {evt.creatorEmail && (
@@ -134,7 +143,7 @@ export default function EventCard(props: EventCardProps) {
           </div>
           <div className="flex items-center gap-1 bg-[#2563eb]/5 border border-[#2563eb]/10 px-2.5 py-0.5 rounded-md text-[10px] text-blue-800 shrink-0">
             <Users className="w-3.5 h-3.5 text-blue-600" />
-            <span>{evt.attendeeCount || 0} {currentT.joined}</span>
+            <span>{randomValue /* evt.attendeeCount || 0 */} {currentT.joined}</span>
           </div>
         </div>
       </div>
@@ -167,9 +176,12 @@ export default function EventCard(props: EventCardProps) {
           </div>
         ) : (
           <button
-            onClick={() => onRegister(evt.id)}
+            disabled
+            className="w-full py-2 bg-slate-800 border border-slate-700/50 text-slate-400 rounded-xl text-xs font-bold uppercase cursor-not-allowed text-center"
+          /* onClick={() => onRegister(evt.id)}
             className="w-full py-2 bg-white text-[#0f1f4e] hover:bg-amber-300 rounded-xl text-xs font-bold uppercase transition-all tracking-wide cursor-pointer text-center"
-          >
+            */
+            >
             {currentUser ? currentT.joinEvent : currentT.signInToJoin}
           </button>
         )}
